@@ -105,7 +105,7 @@ export default function LoginPage() {
                   htmlFor="username1"
                   className="font-medium text-sm text-gray-700 dark:text-gray-300"
                 >
-                  Emaill
+                  Email
                 </label>
               </div>
               <Input
