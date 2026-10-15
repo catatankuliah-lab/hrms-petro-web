@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+/* TODO: Nanti pindahkan file-file ini dari template/src/app/css/ ke src/css/ project ini */
+/* @import './app.css'; */
+/* @import './layouts/container.css' layer(utilities); */
+/* @import './layouts/sidebar.css' layer(utilities); */
+/* @import './layouts/header.css' layer(utilities); */
+/* @import './theme/default-colors.css' layer(utilities); */
+/* @import './theme/dark-colors.css' layer(utilities); */
+/* @import './override/reboot.css' layer(utilities); */
+/* @import "tw-animate-css"; */
+
+/* --- FALLBACK SEMENTARA AGAR WARNA LOGIN MUNCUL SEBELUM THEME DICOPY --- */
+:root {
+  --color-primary: #5d87ff;
+  --color-lightprimary: #ecf2ff;
+  --color-secondary: #49beff;
+  --color-lightsecondary: #e8f7ff;
+  --color-success: #13deb9;
+  --color-info: #539bff;
+  --color-warning: #ffae1f;
+  --color-error: #fa896b;
+  --color-dark: #2a3547;
+  --color-link: #5A6A85;
+  --color-darklink: #eaeaec;
+  --color-defaultBorder: #ebf1f6;
+  --color-graymuted: #7c8fac;
+  --color-border: #e5eaef;
+  
+  /* Warna saat tombol di-hover (emphasis) */
+  --color-primary-emphasis: #4570ea;
+  --color-secondary-emphasis: #38a9eb;
+  --color-success-emphasis: #10c6a5;
+  --color-info-emphasis: #4988e6;
+  --color-warning-emphasis: #e59816;
+  --color-error-emphasis: #e07a5f;
+  
+  --color-charcoal: #2a3547;
+  --color-darkcharcoal: #b4b9c2;
+}
+/* ----------------------------------------------------------------------- */
+
+@custom-variant dark (&:is(.dark *));
+
+html,
+main {
+  scroll-behavior: smooth;
+}
+
+@theme {
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-btn-shadow: rgba(0, 0, 0, 0.05) 0 9px 17.5px;
+  --shadow-boxShadow: 7px 7px 10px rgba(0,0,0,.03);
+
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 7px;
+  --radius-tw: 12px;
+
+  --leading-21: 21px;
+
+  --gap-30: 30px;
+
+  --padding-15: 15px;
+  --padding-30: 30px;
+  --margin-30: 30px;
+
+  --color-cyan-500: var(--color-primary);
+  --color-cyan-600: var(--color-primary);
+  --color-cyan-700: var(--color-primary);
+
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-info: var(--color-info);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-lightprimary: var(--color-lightprimary);
+  --color-lightsecondary: var(--color-lightsecondary);
+  --color-lightsuccess: var(--color-lightsuccess);
+  --color-lighterror: var(--color-lighterror);
+  --color-lightinfo: var(--color-lightinfo);
+  --color-lightwarning: var(--color-lightwarning);
+  --color-border: var(--color-border);
+  --color-graymuted: var(--color-graymuted);
+  --color-darkgray: var(--color-darkgray);
+  --color-bordergray: var(--color-bordergray);
+  --color-lightgray: var(--color-lightgray);
+  --color-muted: var(--color-muted);
+  --color-darkmuted: var(--color-darkmuted);
+  --color-bodytext: var(--color-bodytext);
+  --color-dark: var(--color-dark);
+  --color-link: var(--color-link);
+  --color-darklink: var(--color-darklink);
+  --color-darkborder: var(--color-darkborder);
+  --color-primaryemphasis: var(--color-primary-emphasis);
+  --color-secondaryemphasis: var(--color-secondary-emphasis);
+  --color-warningemphasis: var(--color-warning-emphasis);
+  --color-erroremphasis: var(--color-error-emphasis);
+  --color-successemphasis: var(--color-success-emphasis);
+  --color-infoemphasis: var(--color-info-emphasis);
+  --color-charcoal: var(--color-charcoal);
+  --color-darkcharcoal: var(--color-darkcharcoal);
+  --color-defaultBorder: var(--color-defaultBorder);
+  --color-slateGray: var(--color-slateGray);
+  --color-breadcrumbColor: var(--color-breadcrumbColor);
+
+  /* Shadcn UI Variables */
+  --color-background: var(--background, #ffffff);
+  --color-foreground: var(--foreground, #020817);
+  --color-card: var(--card, #ffffff);
+  --color-card-foreground: var(--card-foreground, #020817);
+  --color-popover: var(--popover, #ffffff);
+  --color-popover-foreground: var(--popover-foreground, #020817);
+  --color-primary-foreground: var(--primary-foreground, #ffffff);
+  --color-secondary-foreground: var(--secondary-foreground, #0f172a);
+  --color-muted-foreground: var(--muted-foreground, #64748b);
+  --color-accent: var(--accent, #f1f5f9);
+  --color-accent-foreground: var(--accent-foreground, #0f172a);
+  --color-destructive: var(--destructive, #ef4444);
+  --color-destructive-foreground: var(--destructive-foreground, #f8fafc);
+  --color-border: var(--border, #e2e8f0);
+  --color-input: var(--input, #e2e8f0);
+  --color-ring: var(--ring, #cbd5e1);
+}
+
+@layer base {
+  .dark {
+    /* Background lebih gelap dari konten biar Sidebar dan Konten ada batas/kontras */
+    --background: #202936;
+    --foreground: #eaeaec;
+    --card: #2a3547;
+    --card-foreground: #eaeaec;
+    --popover: #2a3547;
+    --popover-foreground: #eaeaec;
+    
+    /* Penyesuaian warna teks dan highlight biar kebaca di Dark Mode */
+    --color-lightprimary: rgba(93, 135, 255, 0.15);
+    --color-link: #a1aab8;
+    --color-defaultBorder: #333f55;
+  }
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility form-control {
+  & input {
+    @apply border rounded-md border-defaultBorder bg-transparent ring-transparent dark:ring-transparent dark:bg-transparent w-full text-sm;
+  }
+  & input:focus {
+    @apply shadow-none dark:shadow-none ring-transparent dark:ring-transparent;
+  }
+  & input:focus {
+    @apply border-primary dark:border-primary outline-hidden shadow-none ring-offset-0 ring-transparent;
+  }
+}
+
+@utility form-control-textarea {
+  @apply rounded-md border border-defaultBorder bg-transparent dark:bg-transparent w-full text-sm p-4;
+  &:focus {
+    @apply border-primary dark:border-primary outline-hidden shadow-none ring-offset-0 ring-transparent;
+  }
+}
+
+@utility card-title {
+  @apply text-lg font-semibold text-dark dark:text-white;
+}
+
+@utility border-ld {
+  @apply border-defaultBorder;
+}
+
+@utility bg-hover {
+  @apply hover:bg-lightprimary dark:hover:bg-lightprimary;
+}
+
+@layer utilities {
+  .left-part {
+    @apply p-6 border-e border-defaultBorder;
+  }
+}
+
+@layer components {
+  .container {
+    @apply !max-w-full;
+  }
+  body {
+    @apply text-sm overflow-x-hidden dark:bg-background;
+  }
+  body {
+    @apply text-link dark:text-darklink;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-dark dark:text-white font-semibold;
+  }
+  input::placeholder {
+    @apply text-darklink dark:text-darklink;
+  }
+  button {
+    @apply !cursor-pointer;
+  }
+  #fileUpload input {
+    @apply flex items-center gap-4 p-3;
+  }
+  .sales-overview select{
+    @apply pr-9!;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/* Hide in Firefox */
+input[type="time"] {
+  -moz-appearance: textfield;
+}
+
+@keyframes scan {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 1; }
+  50% { top: 100%; opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.app-content {
+  zoom: 90%;
+}
