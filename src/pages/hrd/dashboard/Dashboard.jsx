@@ -585,7 +585,7 @@ export default function SuperAdminDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
-          <Link to="/super-admin/employees" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-primary/50 transition-all group">
+          <Link to="/hr/employees" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-primary/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-primary transition-colors">Total Karyawan</p>
               <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-2">
@@ -597,7 +597,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/project" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-indigo-500/50 transition-all group">
+          <Link to="/hr/project" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-indigo-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-indigo-500 transition-colors">Project Aktif</p>
               <h3 className="text-3xl font-black text-indigo-600 dark:text-indigo-400 mt-2">
@@ -609,7 +609,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/attendances" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-emerald-500/50 transition-all group">
+          <Link to="/hr/attendances" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-emerald-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-emerald-500 transition-colors">Hadir Hari Ini</p>
               <h3 className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
@@ -621,7 +621,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/attendances" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-rose-500/50 transition-all group">
+          <Link to="/hr/attendances" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-rose-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-rose-500 transition-colors">Terlambat Hari Ini</p>
               <h3 className="text-3xl font-black text-rose-500 dark:text-rose-400 mt-2">
@@ -633,7 +633,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/branch" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-purple-500/50 transition-all group">
+          <Link to="/hr/branch" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-purple-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-purple-500 transition-colors">Cabang</p>
               <h3 className="text-3xl font-black text-purple-600 dark:text-purple-400 mt-2">
@@ -645,7 +645,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/department" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-cyan-500/50 transition-all group">
+          <Link to="/hr/department" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-cyan-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-cyan-500 transition-colors">Departemen</p>
               <h3 className="text-3xl font-black text-cyan-600 dark:text-cyan-400 mt-2">
@@ -657,7 +657,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/cash-advances" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-amber-500/50 transition-all group">
+          <Link to="/hr/cash-advances" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-amber-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-amber-500 transition-colors">Pending Approval</p>
               <h3 className="text-3xl font-black text-amber-500 dark:text-amber-400 mt-2">
@@ -669,7 +669,7 @@ export default function SuperAdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/super-admin/payroll-periods" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-emerald-500/50 transition-all group">
+          <Link to="/hr/payroll-periods" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-emerald-500/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-emerald-500 transition-colors">Pusat Payroll</p>
               <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-3">

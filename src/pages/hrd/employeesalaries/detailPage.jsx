@@ -131,7 +131,7 @@ export default function DetailEmployeeSalaryPage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link to="/super-admin/esalaries" className="hover:text-primary transition-colors">Gaji Karyawan</Link>
+          <Link to="/hr/esalaries" className="hover:text-primary transition-colors">Gaji Karyawan</Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
           <span className="text-gray-800 dark:text-gray-200 font-medium">Pengaturan Gaji</span>
         </div>

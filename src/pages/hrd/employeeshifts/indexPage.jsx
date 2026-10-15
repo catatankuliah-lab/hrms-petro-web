@@ -235,7 +235,7 @@ export default function IndexPage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link to="/super-admin/dashboard" className="hover:text-primary transition-colors">
+          <Link to="/hr/dashboard" className="hover:text-primary transition-colors">
             Dashboard
           </Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
@@ -320,7 +320,7 @@ export default function IndexPage() {
                   <Icon icon="solar:calendar-bold-duotone" className="text-primary" width="24" />
                   Matriks Jadwal Kerja Mingguan (Klik sel untuk edit)
                 </h3>
-                <Link to="/super-admin/emp-shift/add">
+                <Link to="/hr/emp-shift/add">
                   <Button className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px] justify-center">
                     <Icon icon="solar:add-circle-bold" width="20" />
                     Atur Shift Massal

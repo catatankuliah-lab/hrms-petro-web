@@ -106,7 +106,7 @@ export default function DetailPayrollPeriodPage() {
           showConfirmButton: false,
           timer: 2000,
         });
-        navigate("/super-admin/payroll-periods");
+        navigate("/hr/payroll-periods");
       } catch (error) {
         Swal.fire({
           icon: "error",
@@ -162,9 +162,9 @@ export default function DetailPayrollPeriodPage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link to="/super-admin/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
+          <Link to="/hr/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
-          <Link to="/super-admin/payroll-periods" className="hover:text-primary transition-colors">Periode Penggajian</Link>
+          <Link to="/hr/payroll-periods" className="hover:text-primary transition-colors">Periode Penggajian</Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
           <span className="text-gray-800 dark:text-gray-200 font-medium">Detail & Edit Periode</span>
         </div>
@@ -373,7 +373,7 @@ export default function DetailPayrollPeriodPage() {
                           </td>
                           <td className="p-4 px-6 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
-                              <Link to={`/super-admin/payroll-payslips/detail/${item.id}`}>
+                              <Link to={`/hr/payroll-payslips/detail/${item.id}`}>
                                 <Button
                                   size="icon"
                                   variant="outline"

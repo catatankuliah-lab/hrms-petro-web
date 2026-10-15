@@ -92,7 +92,7 @@ export default function IndexPage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link to="/super-admin/dashboard" className="hover:text-primary transition-colors">
+          <Link to="/hr/dashboard" className="hover:text-primary transition-colors">
             Dashboard
           </Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
@@ -170,7 +170,7 @@ export default function IndexPage() {
                   <Icon icon="solar:shop-bold-duotone" className="text-primary" width="24" />
                   Daftar Cabang
                 </h3>
-                <Link to="/super-admin/branch/add">
+                <Link to="/hr/branch/add">
                   <Button className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px] justify-center">
                     <Icon icon="solar:add-circle-bold" width="20" />
                     Tambah Cabang
@@ -190,7 +190,7 @@ export default function IndexPage() {
                   <Icon icon="solar:shop-bold-duotone" className="text-primary" width="24" />
                   Daftar Cabang
                 </h3>
-                <Link to="/super-admin/branch/add">
+                <Link to="/hr/branch/add">
                   <Button className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px] justify-center">
                     <Icon icon="solar:add-circle-bold" width="20" />
                     Tambah Cabang
@@ -226,7 +226,7 @@ export default function IndexPage() {
                         </td>
                         <td className="p-4 px-6 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Link to={`/super-admin/branch/detail/${branch.id}`}>
+                            <Link to={`/hr/branch/detail/${branch.id}`}>
                               <Button
                                 size="icon"
                                 variant="outline"

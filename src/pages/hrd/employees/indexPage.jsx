@@ -164,7 +164,7 @@ export default function IndexPage() {
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <Link
-            to="/super-admin/dashboard"
+            to="/hr/dashboard"
             className="hover:text-primary transition-colors"
           >
             Dashboard
@@ -365,7 +365,7 @@ export default function IndexPage() {
                   />
                   Daftar Karyawan
                 </h3>
-                <Link to="/super-admin/employee/add">
+                <Link to="/hr/employee/add">
                   <Button className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px] justify-center">
                     <Icon icon="solar:add-circle-bold" width="20" />
                     Tambah Karyawan
@@ -397,7 +397,7 @@ export default function IndexPage() {
                   />
                   Daftar Karyawan
                 </h3>
-                <Link to="/super-admin/employee/add">
+                <Link to="/hr/employee/add">
                   <Button className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[200px] justify-center">
                     <Icon icon="solar:add-circle-bold" width="20" />
                     Tambah Karyawan
@@ -491,7 +491,7 @@ export default function IndexPage() {
                         </td>
                         <td className="p-4 px-6 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Link to={`/super-admin/employee/detail/${emp.id}`}>
+                            <Link to={`/hr/employee/detail/${emp.id}`}>
                               <Button
                                 size="icon"
                                 variant="outline"

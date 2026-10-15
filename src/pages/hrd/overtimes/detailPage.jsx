@@ -133,7 +133,7 @@ export default function DetailOvertimePage() {
         showConfirmButton: false,
         timer: 2000,
       });
-      navigate("/super-admin/overtimes");
+      navigate("/hr/overtimes");
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -167,7 +167,7 @@ export default function DetailOvertimePage() {
           showConfirmButton: false,
           timer: 2000,
         });
-        navigate("/super-admin/overtimes");
+        navigate("/hr/overtimes");
       } catch (error) {
         Swal.fire({
           icon: "error",
@@ -182,9 +182,9 @@ export default function DetailOvertimePage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link to="/super-admin/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
+          <Link to="/hr/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
-          <Link to="/super-admin/overtimes" className="hover:text-primary transition-colors">Lembur (Overtime)</Link>
+          <Link to="/hr/overtimes" className="hover:text-primary transition-colors">Lembur (Overtime)</Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
           <span className="text-gray-800 dark:text-gray-200 font-medium">Detail & Edit Lembur</span>
         </div>
