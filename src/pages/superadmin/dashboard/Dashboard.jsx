@@ -182,7 +182,7 @@ export default function SuperAdminDashboard() {
   const handlePreviewAttendance = (attRecord) => {
     if (!attRecord) return;
 
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://hrmsapi.petrolum.cloud/api';
     const serverBaseUrl = apiBase.replace('/api', '');
     
     const cleanInUrl = attRecord.selfie_in_url ? attRecord.selfie_in_url.replace(/^\/+/, '') : null;

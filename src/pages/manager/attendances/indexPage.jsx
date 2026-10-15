@@ -340,7 +340,7 @@ export default function IndexPage() {
 
       {/* MODAL DETAIL & PREVIEW FOTO */}
       {showDetailModal && selectedAttendance && (() => {
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://hrmsapi.petrolum.cloud/api';
         const serverBaseUrl = apiBase.replace('/api', '');
 
         const cleanInUrl = selectedAttendance.selfie_in_url ? selectedAttendance.selfie_in_url.replace(/^\/+/, '') : null;

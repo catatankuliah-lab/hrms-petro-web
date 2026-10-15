@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // Sesuai dengan konfigurasi di .env Anda
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hrmsapi.petrolum.cloud/api',
 });
 
 // Interceptor untuk menyisipkan token otomatis ke setiap request
@@ -35,7 +35,7 @@ api.interceptors.response.use(
 
 export const getImageUrl = (path) => {
   if (!path) return '';
-  let base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+  let base = import.meta.env.VITE_API_BASE_URL || 'https://hrmsapi.petrolum.cloud/api';
   if (!base.startsWith('http')) base = `https://${base}`;
   base = base.replace(/\/api\/?$/, ''); // Hapus /api di akhir base URL
   let safePath = path.replace(/^\/?api\//, '/'); // Hapus /api di awal path jika dari backend terbawa
