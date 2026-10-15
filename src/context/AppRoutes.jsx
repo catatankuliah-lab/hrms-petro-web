@@ -48,6 +48,45 @@ import PayrollPeriodsAddPage from "../pages/superadmin/payrollperiods/addPage";
 import PayrollPeriodsDetailPage from "../pages/superadmin/payrollperiods/detailPage";
 import PayrollPayslipDetailPage from "../pages/superadmin/payrollperiods/subDetailPage";
 
+import HRDashboard from "../pages/hrd/dashboard/Dashboard";
+import HRCompanyIndexPage from "../pages/hrd/company/indexPage";
+import HRCompanyAddPage from "../pages/hrd/company/addPage";
+import HRCompanyDetailPage from "../pages/hrd/company/detailPage";
+import HRBranchIndexPage from "../pages/hrd/branches/indexPage";
+import HRBranchAddPage from "../pages/hrd/branches/addPage";
+import HRBranchDetailPage from "../pages/hrd/branches/detailPage";
+import HRDepartmentIndexPage from "../pages/hrd/departments/indexPage";
+import HRDepartmentAddPage from "../pages/hrd/departments/addPage";
+import HRDepartmentDetailPage from "../pages/hrd/departments/detailPage";
+import HRJobPositionIndexPage from "../pages/hrd/jobpostions/indexPage";
+import HRJobPositionAddPage from "../pages/hrd/jobpostions/addPage";
+import HRJobPositionDetailPage from "../pages/hrd/jobpostions/detailPage";
+import HRProjectIndexPage from "../pages/hrd/projects/indexPage";
+import HRProjectAddPage from "../pages/hrd/projects/addPage";
+import HRProjectDetailPage from "../pages/hrd/projects/detailPage";
+import HREmployeeIndexPage from "../pages/hrd/employees/indexPage";
+import HREmployeeAddPage from "../pages/hrd/employees/addPage";
+import HREmployeeDetailPage from "../pages/hrd/employees/detailPage";
+import HRShiftIndexPage from "../pages/hrd/shifts/indexPage";
+import HRShiftAddPage from "../pages/hrd/shifts/addPage";
+import HRShiftDetailPage from "../pages/hrd/shifts/detailPage";
+import HREmployeeShiftIndexPage from "../pages/hrd/employeeshifts/indexPage";
+import HREmployeeShiftAddPage from "../pages/hrd/employeeshifts/addPage";
+import HREmployeeShiftDetailPage from "../pages/hrd/employeeshifts/detailPage";
+import HRAttendancesIndexPage from "../pages/hrd/attendances/indexPage";
+import HROvertimesIndexPage from "../pages/hrd/overtimes/indexPage";
+import HROvertimesAddPage from "../pages/hrd/overtimes/addPage";
+import HROvertimesDetailPage from "../pages/hrd/overtimes/detailPage";
+import HRSalaryComponentsIndexPage from "../pages/hrd/salarycomponents/indexPage";
+import HRSalaryComponentsAddPage from "../pages/hrd/salarycomponents/addPage";
+import HRSalaryComponentsDetailPage from "../pages/hrd/salarycomponents/detailPage";
+import HREmployeeSalaryIndexPage from "../pages/hrd/employeesalaries/indexPage";
+import HREmployeeSalaryDetailPage from "../pages/hrd/employeesalaries/detailPage";
+import HRPayrollPeriodsIndexPage from "../pages/hrd/payrollperiods/indexPage";
+import HRPayrollPeriodsAddPage from "../pages/hrd/payrollperiods/addPage";
+import HRPayrollPeriodsDetailPage from "../pages/hrd/payrollperiods/detailPage";
+import HRPayrollPayslipDetailPage from "../pages/hrd/payrollperiods/subDetailPage";
+
 import ManagerDashboard from "../pages/manager/dashboard/Dashboard";
 import ManagerEmployeeShiftIndexPage from "../pages/manager/employeeshifts/indexPage";
 import ManagerEmployeeShiftAddPage from "../pages/manager/employeeshifts/addPage";
@@ -447,6 +486,328 @@ const AppRoutes = () => {
           element={
             <PrivateRoute allowedRoles={["Super Admin"]}>
               <PayrollPayslipDetailPage />
+            </PrivateRoute>
+          }
+        />
+        {/* --- HRD ROUTES (Menggunakan file asli) --- */}
+        <Route
+          path="/hr/dashboard"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/company"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRCompanyIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/company/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRCompanyAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/company/edit/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRCompanyAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/company/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRCompanyDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/branch"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRBranchIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/branch/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRBranchAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/branch/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRBranchDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/department"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRDepartmentIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/department/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRDepartmentAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/department/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRDepartmentDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/job-position"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRJobPositionIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/job-position/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRJobPositionAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/job-position/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRJobPositionDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/project"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRProjectIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/project/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRProjectAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/project/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRProjectDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/employee"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/employee/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/employee/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/shift"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRShiftIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/shift/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRShiftAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/shift/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRShiftDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/emp-shift"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeShiftIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/emp-shift/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeShiftAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/emp-shift/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeShiftDetailPage />
+            </PrivateRoute>
+          }
+        /> 
+        <Route
+          path="/hr/attendances"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRAttendancesIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/attendances/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRAttendancesIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/overtimes"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HROvertimesIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/overtimes/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HROvertimesAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/overtimes/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HROvertimesDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/salary-components"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRSalaryComponentsIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/salary-components/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRSalaryComponentsAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/salary-components/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRSalaryComponentsDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/esalaries"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeSalaryIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/esalaries/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HREmployeeSalaryDetailPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/payroll-periods"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRPayrollPeriodsIndexPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/payroll-periods/add"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRPayrollPeriodsAddPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/hr/payroll-periods/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRPayrollPeriodsDetailPage />
+            </PrivateRoute>
+          }
+        />
+        {/* --- ROUTE SUB-DETAIL SLIP GAJI PER KARYAWAN --- */}
+        <Route
+          path="/super-admin/payroll-payslips/detail/:id"
+          element={
+            <PrivateRoute allowedRoles={["HR"]}>
+              <HRPayrollPayslipDetailPage />
             </PrivateRoute>
           }
         />
