@@ -250,6 +250,10 @@ export default function IndexPage() {
                       const empRole = item.Employee?.role || item.employee_role || "-";
                       const projName = item.Project?.name || item.project_name || "Penugasan Operasional";
                       const isLate = item.status && item.status.toLowerCase().includes("late");
+                      
+                      // Membersihkan teks [...] pada status absensi tabel utama
+                      const rawStatus = item.status || 'Hadir';
+                      const cleanStatus = rawStatus.replace(/\[.*?\]/g, '').trim();
 
                       return (
                         <tr key={item.id || index} className="border-b border-gray-100 dark:border-defaultBorder/50 hover:bg-gray-50 dark:hover:bg-background/50 transition-colors">
@@ -278,7 +282,7 @@ export default function IndexPage() {
                                 ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" 
                                 : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                             }`}>
-                              {isLate ? "Terlambat" : "Hadir"}
+                              {cleanStatus || (isLate ? "Terlambat" : "Hadir")}
                             </span>
                           </td>
                           <td className="p-4 px-6 text-right whitespace-nowrap">
@@ -346,6 +350,10 @@ export default function IndexPage() {
           : (selectedAttendance.Employee?.nama || selectedAttendance.employee_name || "-");
           
         const modalProjName = selectedAttendance.Project?.name || selectedAttendance.project_name || "-";
+        
+        // Membersihkan teks [...] pada status modal detail
+        const rawModalStatus = selectedAttendance.status || 'Hadir';
+        const cleanModalStatus = rawModalStatus.replace(/\[.*?\]/g, '').trim();
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 overflow-y-auto">
@@ -369,7 +377,7 @@ export default function IndexPage() {
                   <p><b>Karyawan:</b> <span className="text-slate-900 dark:text-white font-bold">{modalEmpName}</span></p>
                   <p><b>Proyek:</b> <span className="text-slate-900 dark:text-white font-medium">{modalProjName}</span></p>
                   <p><b>Tanggal:</b> <span className="font-mono">{selectedAttendance.date}</span></p>
-                  <p><b>Status:</b> <span className={`font-bold ${selectedAttendance.status?.toLowerCase().includes('late') ? 'text-amber-500' : 'text-emerald-500'}`}>{selectedAttendance.status || 'Hadir'}</span></p>
+                  <p><b>Status:</b> <span className={`font-bold ${selectedAttendance.status?.toLowerCase().includes('late') ? 'text-amber-500' : 'text-emerald-500'}`}>{cleanModalStatus}</span></p>
                   <p><b>Clock In:</b> <span className="font-mono text-emerald-600 font-bold">{formatTimeDisplay(selectedAttendance.clock_in)}</span></p>
                   <p><b>Clock Out:</b> <span className="font-mono text-amber-600 font-bold">{selectedAttendance.clock_out ? formatTimeDisplay(selectedAttendance.clock_out) : 'Belum Clock Out'}</span></p>
                   <p><b>Koordinat In:</b> <span className="font-mono text-slate-500">{selectedAttendance.clock_in_lat || '-'}, {selectedAttendance.clock_in_lng || '-'}</span></p>
