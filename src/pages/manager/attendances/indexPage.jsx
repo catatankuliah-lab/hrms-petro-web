@@ -89,31 +89,23 @@ export default function IndexPage() {
     return () => clearTimeout(timer);
   }, [fetchData, currentPage, searchTerm, projectFilter, dateFilter]);
 
-  // Helper Format Jam
+  // Helper Format Jam yang Aman dari Pergeseran Zona Waktu
   const formatTimeDisplay = (timeStr) => {
     if (!timeStr) return "-";
-    try {
-      const date = new Date(timeStr);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleTimeString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    if (timeStr.includes("T")) {
+    
+    // Jika format dari database berupa string ISO / mengandung 'T'
+    if (typeof timeStr === 'string' && timeStr.includes("T")) {
       const parts = timeStr.split("T")[1];
       return parts ? parts.slice(0, 5) : "-";
     }
-    if (timeStr.includes(" ")) {
+
+    // Jika format berupa spasi (misal: "2026-10-20 15:57:01")
+    if (typeof timeStr === 'string' && timeStr.includes(" ")) {
       const parts = timeStr.split(" ")[1];
       return parts ? parts.slice(0, 5) : "-";
     }
-    return timeStr.slice(0, 5);
+
+    return String(timeStr).slice(0, 5);
   };
 
   const handleOpenDetail = (item) => {
@@ -125,7 +117,7 @@ export default function IndexPage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link to="/super-admin/dashboard" className="hover:text-primary transition-colors">
+          <Link to="/manager/dashboard" className="hover:text-primary transition-colors">
             Dashboard
           </Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
@@ -387,14 +379,14 @@ export default function IndexPage() {
                   {selfieInUrl && (
                     <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
                       <p className="font-bold text-slate-300 mb-2 text-[11px]">📷 Foto Clock In (Masuk)</p>
-                      <img src={selfieInUrl} onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
+                      <img src={selfieInUrl} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
                     </div>
                   )}
 
                   {selfieOutUrl && (
                     <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
                       <p className="font-bold text-slate-300 mb-2 text-[11px]">📷 Foto Clock Out (Pulang)</p>
-                      <img src={selfieOutUrl} onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
+                      <img src={selfieOutUrl} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
                     </div>
                   )}
                 </div>
