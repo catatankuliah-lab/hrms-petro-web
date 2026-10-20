@@ -1,16 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect, useContext, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
-import { AuthContext } from "../../../context/AuthContext";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Icon } from "@iconify/react";
-import Swal from "sweetalert2";
 import api from "../../../services/api";
 
 export default function IndexPage() {
-  const { user } = useContext(AuthContext);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [attendances, setAttendances] = useState([]);
@@ -31,16 +28,6 @@ export default function IndexPage() {
   // States untuk Detail Modal
   const [selectedAttendance, setSelectedAttendance] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-
-  // States untuk Absensi Manager Dashboard style
-  const [attendanceStatus, setAttendanceStatus] = useState("Belum Absen Hari Ini");
-  const [todayShiftInfo, setTodayShiftInfo] = useState("Memuat jadwal shift...");
-  const [showCameraModal, setShowCameraModal] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
-
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
 
   // Ambil daftar proyek untuk pilihan dropdown filter
   useEffect(() => {
@@ -88,42 +75,12 @@ export default function IndexPage() {
       setAttendances(Array.isArray(responseData) ? responseData : (responseData.data || []));
       setTotalPages(res.data.totalPages || 1);
       setTotalItems(res.data.totalData || responseData.length || 0);
-
-      // Check current user status for today
-      const todayStr = new Date().toLocaleDateString('en-CA');
-      const allAttendances = Array.isArray(responseData) ? responseData : (responseData.data || []);
-      const userTodayAtt = allAttendances.find(a => String(a.employee_id || a.Employee?.id) === String(user?.id) && a.date === todayStr);
-
-      if (userTodayAtt) {
-        setAttendanceStatus(userTodayAtt.clock_out ? "Sudah Clock Out" : "Sudah Clock In");
-      }
-
     } catch (error) {
       console.error("Gagal memuat data kehadiran:", error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
-
-  useEffect(() => {
-    const fetchShift = async () => {
-      try {
-        const todayStr = new Date().toLocaleDateString('en-CA');
-        const shiftRes = await api.get("/employee-shifts");
-        const allShifts = shiftRes.data.data || [];
-        const myTodayShift = allShifts.find(s => String(s.employee_id || s.Employee?.id) === String(user?.id) && s.date === todayStr);
-
-        if (myTodayShift?.Shift) {
-          setTodayShiftInfo(`${myTodayShift.Shift.name} (${myTodayShift.Shift.clock_in_time} - ${myTodayShift.Shift.clock_out_time})`);
-        } else {
-          setTodayShiftInfo("Tidak ada jadwal shift");
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    if (user?.id) fetchShift();
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -132,59 +89,23 @@ export default function IndexPage() {
     return () => clearTimeout(timer);
   }, [fetchData, currentPage, searchTerm, projectFilter, dateFilter]);
 
-  const initCamera = async () => {
-    setShowCameraModal(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err) {
-      Swal.fire("Error", "Gagal akses kamera", "error");
-      setShowCameraModal(false);
-    }
-  };
-
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-
-    // 🎯 Set canvas ke ukuran asli video agar tidak lonjong
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-
-    setPreviewUrl(canvas.toDataURL("image/jpeg"));
-    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-  };
-
-  // Helper Format Jam
+  // Helper Format Jam yang Aman dari Pergeseran Zona Waktu
   const formatTimeDisplay = (timeStr) => {
     if (!timeStr) return "-";
-    try {
-      const date = new Date(timeStr);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleTimeString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    if (timeStr.includes("T")) {
+    
+    // Jika format dari database berupa string ISO / mengandung 'T'
+    if (typeof timeStr === 'string' && timeStr.includes("T")) {
       const parts = timeStr.split("T")[1];
       return parts ? parts.slice(0, 5) : "-";
     }
-    if (timeStr.includes(" ")) {
+
+    // Jika format berupa spasi (misal: "2026-10-20 15:57:01")
+    if (typeof timeStr === 'string' && timeStr.includes(" ")) {
       const parts = timeStr.split(" ")[1];
       return parts ? parts.slice(0, 5) : "-";
     }
-    return timeStr.slice(0, 5);
+
+    return String(timeStr).slice(0, 5);
   };
 
   const handleOpenDetail = (item) => {
@@ -277,16 +198,6 @@ export default function IndexPage() {
         </div>
       </div>
 
-      <div className="mb-6 p-5 rounded-2xl bg-white dark:bg-card border border-gray-100 dark:border-defaultBorder shadow-sm flex justify-between items-center">
-        <div>
-          <h4 className="font-bold text-gray-800 dark:text-white">Absensi Anda</h4>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{todayShiftInfo}</p>
-        </div>
-        <button onClick={initCamera} className="bg-primary text-white px-4 py-2 rounded-lg font-bold">
-          {attendanceStatus === "Sudah Clock In" ? "Clock Out" : "Clock In"}
-                </button>
-              </div>
-
       <div className="grid grid-cols-1 min-w-0 w-full overflow-hidden">
         <div className="rounded-xl shadow-sm bg-white dark:bg-card w-full overflow-hidden flex flex-col min-w-0">
           {loading ? (
@@ -363,8 +274,8 @@ export default function IndexPage() {
                           </td>
                           <td className="p-4 px-4 whitespace-nowrap">
                             <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-                              isLate
-                                ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                              isLate 
+                                ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" 
                                 : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                             }`}>
                               {isLate ? "Terlambat" : "Hadir"}
@@ -419,29 +330,6 @@ export default function IndexPage() {
         </div>
       </div>
 
-      {showCameraModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col items-center">
-            <div className="relative w-full aspect-[3/4] bg-black rounded-2xl overflow-hidden mb-4">
-              {!previewUrl ? (
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
-              ) : (
-                <img src={previewUrl} className="w-full h-full object-contain" />
-              )}
-              <canvas ref={canvasRef} className="hidden" />
-            </div>
-            {!previewUrl ? (
-                <button onClick={capturePhoto} className="bg-primary text-white w-full py-3 rounded-xl font-bold">Ambil Foto</button>
-            ) : (
-                <div className="flex gap-2 w-full">
-                    <button onClick={() => setPreviewUrl(null)} className="flex-1 py-3 bg-gray-200 rounded-xl">Ulangi</button>
-                    <button onClick={() => setShowCameraModal(false)} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold">Kirim</button>
-                </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* MODAL DETAIL & PREVIEW FOTO */}
       {showDetailModal && selectedAttendance && (() => {
         const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://hrmsapi.petrolum.cloud/api';
@@ -491,14 +379,14 @@ export default function IndexPage() {
                   {selfieInUrl && (
                     <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
                       <p className="font-bold text-slate-300 mb-2 text-[11px]">📷 Foto Clock In (Masuk)</p>
-                      <img src={selfieInUrl} onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
+                      <img src={selfieInUrl} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
                     </div>
                   )}
 
                   {selfieOutUrl && (
                     <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
                       <p className="font-bold text-slate-300 mb-2 text-[11px]">📷 Foto Clock Out (Pulang)</p>
-                      <img src={selfieOutUrl} onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
+                      <img src={selfieOutUrl} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
                     </div>
                   )}
                 </div>
