@@ -75,6 +75,7 @@ export default function IndexPage() {
       setAttendances(Array.isArray(responseData) ? responseData : (responseData.data || []));
       setTotalPages(res.data.totalPages || 1);
       setTotalItems(res.data.totalData || responseData.length || 0);
+      console.log(res.data);
     } catch (error) {
       console.error("Gagal memuat data kehadiran:", error);
     } finally {
