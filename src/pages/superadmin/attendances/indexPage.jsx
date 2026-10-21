@@ -75,7 +75,6 @@ export default function IndexPage() {
       setAttendances(Array.isArray(responseData) ? responseData : (responseData.data || []));
       setTotalPages(res.data.totalPages || 1);
       setTotalItems(res.data.totalData || responseData.length || 0);
-      console.log(res.data);
     } catch (error) {
       console.error("Gagal memuat data kehadiran:", error);
     } finally {
@@ -90,21 +89,36 @@ export default function IndexPage() {
     return () => clearTimeout(timer);
   }, [fetchData, currentPage, searchTerm, projectFilter, dateFilter]);
 
-  // Helper Format Jam: Mengambil string mentah dari DB (No time conversion)
+  // Helper Format Jam: Mengatasi pergeseran UTC ke WIB (+7 Jam) secara aman di Frontend
   const formatTimeDisplay = (timeStr) => {
     if (!timeStr) return "-";
     
-    // ISO "2026-10-20T15:57:01" -> "15:57"
-    if (typeof timeStr === 'string' && timeStr.includes("T")) {
-      return timeStr.split("T")[1].slice(0, 5);
-    }
+    try {
+      // Jika format dari backend berupa ISO string ber-Z (misal: "2026-10-20T00:57:01.000Z")
+      if (typeof timeStr === 'string' && (timeStr.includes("T") || timeStr.includes("Z"))) {
+        const d = new Date(timeStr);
+        if (!isNaN(d.getTime())) {
+          // Paksa render ke zona waktu Asia/Jakarta (WIB)
+          return d.toLocaleTimeString("id-ID", {
+            timeZone: "Asia/Jakarta",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+          });
+        }
+      }
 
-    // SQL "2026-10-20 15:57:01" -> "15:57"
-    if (typeof timeStr === 'string' && timeStr.includes(" ")) {
-      return timeStr.split(" ")[1].slice(0, 5);
-    }
+      // Jika format SQL biasa ("2026-10-20 07:57:01")
+      if (typeof timeStr === 'string' && timeStr.includes(" ")) {
+        const parts = timeStr.split(" ")[1];
+        return parts ? parts.slice(0, 5) : "-";
+      }
 
-    return String(timeStr).slice(0, 5);
+      return String(timeStr).slice(0, 5);
+    } catch (e) {
+      console.error("Gagal format waktu:", e);
+      return timeStr;
+    }
   };
 
   const handleOpenDetail = (item) => {
