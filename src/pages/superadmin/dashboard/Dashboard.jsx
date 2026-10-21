@@ -57,23 +57,37 @@ export default function SuperAdminDashboard() {
         const todayStr = new Date().toISOString().split("T")[0];
         const currentUserId = user?.id || localStorage.getItem("user_id");
 
+        // Menggunakan parameter limit yang besar agar data tidak terpotong pagination
         const [empRes, branchRes, deptRes, projRes, caRes, otRes, attRes, shiftRes] = await Promise.all([
-          api.get("/employees").catch(() => ({ data: { data: [] } })),
-          api.get("/branches").catch(() => ({ data: { data: [] } })),
-          api.get("/departments").catch(() => ({ data: { data: [] } })),
-          api.get("/projects").catch(() => ({ data: { data: [] } })),
-          api.get("/cash-advances?status=Pending").catch(() => ({ data: { data: [] } })),
-          api.get("/overtimes?status=Pending").catch(() => ({ data: { data: [] } })),
-          api.get("/attendances").catch(() => ({ data: { data: [] } })),
-          api.get("/employee-shifts").catch(() => ({ data: { data: [] } })),
+          api.get("/employees?limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/branches?limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/departments?limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/projects?limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/cash-advances?status=Pending&limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/overtimes?status=Pending&limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/attendances?limit=1000").catch(() => ({ data: { data: [] } })),
+          api.get("/employee-shifts?limit=1000").catch(() => ({ data: { data: [] } })),
         ]);
 
-        const projects = projRes.data.data || [];
+        const extractData = (res) => {
+          if (Array.isArray(res.data)) return res.data;
+          if (res.data && Array.isArray(res.data.data)) return res.data.data;
+          return [];
+        };
+
+        const employees = extractData(empRes);
+        const branches = extractData(branchRes);
+        const departments = extractData(deptRes);
+        const projects = extractData(projRes);
+        const cashAdvances = extractData(caRes);
+        const overtimes = extractData(otRes);
+        const allAttendances = extractData(attRes);
+        const allEmployeeShifts = extractData(shiftRes);
+
         const activeProj = projects.filter(p => 
           p.status && (p.status.toLowerCase() === "active" || p.status.toLowerCase() === "ongoing")
         );
 
-        const allAttendances = attRes.data.data || [];
         const todayAttendances = allAttendances.filter(a => a.date === todayStr);
         
         const presentCount = todayAttendances.length;
@@ -89,7 +103,6 @@ export default function SuperAdminDashboard() {
         });
         setMyAttendancesMap(attMap);
 
-        const allEmployeeShifts = shiftRes.data.data || [];
         const userShifts = allEmployeeShifts.filter(s => {
           const empId = s.employee_id || s.Employee?.id || s.raw_employee_id;
           return String(empId) === String(currentUserId) || String(s.Employee?.id) === String(currentUserId);
@@ -132,19 +145,18 @@ export default function SuperAdminDashboard() {
         }
 
         setStats({
-          totalEmployees: empRes.data.data?.length || 0,
-          totalBranches: branchRes.data.data?.length || 0,
-          totalDepartments: deptRes.data.data?.length || 0,
+          totalEmployees: employees.length,
+          totalBranches: branches.length,
+          totalDepartments: departments.length,
           totalProjects: projects.length,
           activeProjects: activeProj.length > 0 ? activeProj.length : projects.length,
-          pendingCashAdvances: caRes.data.data?.length || 0,
-          pendingOvertimes: otRes.data.data?.length || 0,
+          pendingCashAdvances: cashAdvances.length,
+          pendingOvertimes: overtimes.length,
           todayPresent: presentCount,
           todayLate: lateCount,
         });
       } catch (error) {
         console.error(error);
-        // Silent error
       } finally {
         setLoading(false);
       }
@@ -585,7 +597,7 @@ export default function SuperAdminDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
-          <Link to="/super-admin/employees" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-primary/50 transition-all group">
+          <Link to="/super-admin/employee" className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between hover:border-primary/50 transition-all group">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-primary transition-colors">Total Karyawan</p>
               <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-2">
