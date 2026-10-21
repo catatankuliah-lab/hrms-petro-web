@@ -19,8 +19,7 @@ export default function IndexPage() {
   );
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [projectFilter, setProjectFilter] = useState(searchParams.get("project_id") || "");
-  // Menggunakan format YYYY-MM-DD dari browser agar sesuai input type="date"
-  const [dateFilter, setDateFilter] = useState(searchParams.get("date") || new Date().toISOString().split("T")[0]); 
+  const [dateFilter, setDateFilter] = useState(searchParams.get("date") || new Date().toISOString().split("T")[0]);
 
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -43,7 +42,6 @@ export default function IndexPage() {
     fetchProjects();
   }, []);
 
-  // Update state dari URLSearchParams
   useEffect(() => {
     setCurrentPage(parseInt(searchParams.get("page")) || 1);
     setSearchTerm(searchParams.get("search") || "");
@@ -51,7 +49,6 @@ export default function IndexPage() {
     setDateFilter(searchParams.get("date") || new Date().toISOString().split("T")[0]);
   }, [searchParams]);
 
-  // Update URLSearchParams saat state filter berubah
   useEffect(() => {
     const params = {};
     if (currentPage > 1) params.page = currentPage;
@@ -92,24 +89,21 @@ export default function IndexPage() {
     return () => clearTimeout(timer);
   }, [fetchData, currentPage, searchTerm, projectFilter, dateFilter]);
 
-  // Helper Format Jam (RAW dari Server - Asumsi Server sudah WIB)
+  // Helper Format Jam: Mengambil string mentah dari DB (No time conversion)
   const formatTimeDisplay = (timeStr) => {
     if (!timeStr) return "-";
     
-    // Coba parse jika formatnya ISO String (misal: 2026-10-20T15:57:01.000Z)
+    // ISO "2026-10-20T15:57:01" -> "15:57"
     if (typeof timeStr === 'string' && timeStr.includes("T")) {
-      const parts = timeStr.split("T")[1]; // Ambil bagian jam
-      return parts ? parts.slice(0, 5) : "-"; // Ambil HH:mm
+      return timeStr.split("T")[1].slice(0, 5);
     }
 
-    // Coba parse jika formatnya string dengan spasi (misal: "2026-10-20 15:57:01")
+    // SQL "2026-10-20 15:57:01" -> "15:57"
     if (typeof timeStr === 'string' && timeStr.includes(" ")) {
-      const parts = timeStr.split(" ")[1]; // Ambil bagian jam
-      return parts ? parts.slice(0, 5) : "-"; // Ambil HH:mm
+      return timeStr.split(" ")[1].slice(0, 5);
     }
 
-    // Jika formatnya hanya HH:MM:SS atau HH:MM
-    return String(timeStr).slice(0, 5); 
+    return String(timeStr).slice(0, 5);
   };
 
   const handleOpenDetail = (item) => {
@@ -234,43 +228,53 @@ export default function IndexPage() {
               <div className="px-7 w-full mt-4 overflow-x-auto">
                 <table className="w-full min-w-[900px] caption-bottom text-sm text-left border-collapse">
                   <thead className="bg-gray-50 dark:bg-slate-950 border-b border-gray-100 dark:border-defaultBorder">
-                    <tr className="text-gray-500 font-bold uppercase text-[11px]">
-                      <th className="h-12 px-6 text-left">No</th>
-                      <th className="h-12 px-4 text-left">Karyawan</th>
-                      <th className="h-12 px-4 text-left">Proyek / Lokasi</th>
-                      <th className="h-12 px-4 text-left">Tanggal</th>
-                      <th className="h-12 px-4 text-left">Clock In</th>
-                      <th className="h-12 px-4 text-left">Clock Out</th>
-                      <th className="h-12 px-4 text-left">Status</th>
-                      <th className="h-12 px-6 text-right">Aksi</th>
+                    <tr>
+                      <th className="h-12 px-6 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap w-[60px]">No</th>
+                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Karyawan</th>
+                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Proyek / Lokasi</th>
+                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Tanggal</th>
+                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Clock In</th>
+                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Clock Out</th>
+                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Status</th>
+                      <th className="h-12 px-6 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap w-[100px]">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                  <tbody className="bg-white dark:bg-slate-900">
                     {attendances.map((item, index) => {
                       const empName = item.Employee?.first_name 
                         ? `${item.Employee.first_name} ${item.Employee.last_name || ''}`.trim()
                         : (item.Employee?.nama || item.employee_name || "Karyawan");
                       
-                      const projName = item.Project?.name || item.project_name || "Operasional";
+                      const empRole = item.Employee?.role || item.employee_role || "-";
+                      const projName = item.Project?.name || item.project_name || "Penugasan Operasional";
                       const isLate = item.status && item.status.toLowerCase().includes("late");
                       
-                      // Membersihkan teks [...] pada status absensi
                       const rawStatus = item.status || 'Hadir';
                       const cleanStatus = rawStatus.replace(/\[.*?\]/g, '').trim();
 
                       return (
-                        <tr key={item.id || index} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="p-4 px-6 font-medium text-gray-800 dark:text-gray-200">{ (currentPage - 1) * itemsPerPage + index + 1 }</td>
-                          <td className="p-4 px-4 whitespace-nowrap">
-                            <div className="font-bold">{empName}</div>
-                            <div className="text-xs text-gray-500">{item.Employee?.role || item.employee_role || "-"}</div>
+                        <tr key={item.id || index} className="border-b border-gray-100 dark:border-defaultBorder/50 hover:bg-gray-50 dark:hover:bg-background/50 transition-colors">
+                          <td className="p-4 px-6 font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                            {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td className="p-4 px-4 font-medium text-gray-700 dark:text-gray-300">{projName}</td>
-                          <td className="p-4 px-4 font-mono text-gray-600 dark:text-gray-400">{item.date}</td>
-                          <td className="p-4 px-4 font-mono font-semibold text-emerald-600">{formatTimeDisplay(item.clock_in)}</td>
-                          <td className="p-4 px-4 font-mono font-semibold text-amber-600">{item.clock_out ? formatTimeDisplay(item.clock_out) : "-"}</td>
-                          <td className="p-4 px-4">
-                            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
+                          <td className="p-4 px-4 whitespace-nowrap">
+                            <div className="font-bold text-gray-800 dark:text-gray-200">{empName}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{empRole}</div>
+                          </td>
+                          <td className="p-4 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                            {projName}
+                          </td>
+                          <td className="p-4 px-4 font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                            {item.date}
+                          </td>
+                          <td className="p-4 px-4 font-mono font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                            {formatTimeDisplay(item.clock_in)}
+                          </td>
+                          <td className="p-4 px-4 font-mono font-semibold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                            {item.clock_out ? formatTimeDisplay(item.clock_out) : "Belum Out"}
+                          </td>
+                          <td className="p-4 px-4 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
                               isLate 
                                 ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" 
                                 : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
@@ -278,7 +282,7 @@ export default function IndexPage() {
                               {cleanStatus || (isLate ? "Terlambat" : "Hadir")}
                             </span>
                           </td>
-                          <td className="p-4 px-6 text-right">
+                          <td className="p-4 px-6 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
                               <Button
                                 size="icon"
@@ -334,37 +338,41 @@ export default function IndexPage() {
             <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-800 mb-4">
               <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <Icon icon="solar:user-check-bold-duotone" className="text-primary" width="22" />
-                Detail Kehadiran
+                Detail Kehadiran Karyawan
               </h3>
-              <button onClick={() => setShowDetailModal(false)} className="text-xl text-gray-400 hover:text-gray-800 dark:hover:text-white">✕</button>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-all"
+              >
+                ✕
+              </button>
             </div>
-            
-            <div className="space-y-4">
-                <div className="p-4 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-2">
-                    <p><b>Karyawan:</b> <span className="font-bold">{selectedAttendance.Employee?.nama || selectedAttendance.employee_name || "-"}</span></p>
-                    <p><b>Proyek:</b> <span className="font-medium">{selectedAttendance.Project?.name || selectedAttendance.project_name || "Umum"}</span></p>
-                    <p><b>Tanggal:</b> <span className="font-mono">{selectedAttendance.date}</span></p>
-                    <p><b>Status:</b> <span className={`font-bold ${selectedAttendance.status?.toLowerCase().includes('late') ? 'text-amber-500' : 'text-emerald-500'}`}>{selectedAttendance.status?.replace(/\[.*?\]/g, '').trim() || 'Hadir'}</span></p>
-                    <p><b>Clock In:</b> <span className="font-mono text-emerald-600 font-bold">{formatTimeDisplay(selectedAttendance.clock_in)}</span></p>
-                    <p><b>Clock Out:</b> <span className="font-mono text-amber-600 font-bold">{selectedAttendance.clock_out ? formatTimeDisplay(selectedAttendance.clock_out) : '-'}</span></p>
-                    <p><b>Koordinat In:</b> <span className="font-mono text-slate-500">{selectedAttendance.clock_in_lat || '-'}, {selectedAttendance.clock_in_lng || '-'}</span></p>
-                </div>
 
-                <div className="space-y-3">
-                  {selectedAttendance.selfie_in_url && (
-                    <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
-                      <p className="font-bold text-slate-300 mb-2 text-[11px]">FOTO MASUK</p>
-                      <img src={selectedAttendance.selfie_in_url.includes('http') ? selectedAttendance.selfie_in_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_in_url}`} onError={(e) => { e.target.onerror = null; e.target.src='/images/placeholder-image.png'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
-                    </div>
-                  )}
+            <div className="text-xs text-slate-600 dark:text-slate-300 space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                <p><b>Karyawan:</b> <span className="text-slate-900 dark:text-white font-bold">{selectedAttendance.Employee?.nama || selectedAttendance.employee_name || "-"}</span></p>
+                <p><b>Proyek:</b> <span className="text-slate-900 dark:text-white font-medium">{selectedAttendance.Project?.name || selectedAttendance.project_name || "-"}</span></p>
+                <p><b>Tanggal:</b> <span className="font-mono">{selectedAttendance.date}</span></p>
+                <p><b>Status:</b> <span className={`font-bold ${selectedAttendance.status?.toLowerCase().includes('late') ? 'text-amber-500' : 'text-emerald-500'}`}>{selectedAttendance.status?.replace(/\[.*?\]/g, '').trim() || 'Hadir'}</span></p>
+                <p><b>Clock In:</b> <span className="font-mono text-emerald-600 font-bold">{formatTimeDisplay(selectedAttendance.clock_in)}</span></p>
+                <p><b>Clock Out:</b> <span className="font-mono text-amber-600 font-bold">{selectedAttendance.clock_out ? formatTimeDisplay(selectedAttendance.clock_out) : 'Belum Out'}</span></p>
+                <p><b>Koordinat In:</b> <span className="font-mono text-slate-500">{selectedAttendance.clock_in_lat || '-'}, {selectedAttendance.clock_in_lng || '-'}</span></p>
+              </div>
 
-                  {selectedAttendance.selfie_out_url && (
-                    <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
-                      <p className="font-bold text-slate-300 mb-2 text-[11px]">FOTO KELUAR</p>
-                      <img src={selectedAttendance.selfie_out_url.includes('http') ? selectedAttendance.selfie_out_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_out_url}`} onError={(e) => { e.target.onerror = null; e.target.src='/images/placeholder-image.png'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
-                    </div>
-                  )}
-                </div>
+              <div className="space-y-3">
+                {selectedAttendance.selfie_in_url && (
+                  <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
+                    <p className="font-bold text-slate-300 mb-2 text-[11px]">📸 Foto Clock In (Masuk)</p>
+                    <img src={selectedAttendance.selfie_in_url.includes('http') ? selectedAttendance.selfie_in_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_in_url}`} onError={(e) => { e.target.onerror = null; e.target.src='https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
+                  </div>
+                )}
+                {selectedAttendance.selfie_out_url && (
+                  <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
+                    <p className="font-bold text-slate-300 mb-2 text-[11px]">📷 Foto Clock Out (Pulang)</p>
+                    <img src={selectedAttendance.selfie_out_url.includes('http') ? selectedAttendance.selfie_out_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_out_url}`} onError={(e) => { e.target.onerror = null; e.target.src='https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
