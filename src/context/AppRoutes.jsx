@@ -93,7 +93,7 @@ import ManagerEmployeeShiftAddPage from "../pages/manager/employeeshifts/addPage
 import ManagerEmployeeShiftDetailPage from "../pages/manager/employeeshifts/detailPage";
 import ManagerAttendancesIndexPage from "../pages/manager/attendances/indexPage";
 
-import EmployeeDashboard from "../pages/manager/dashboard/Dashboard";
+import EmployeeDashboard from "../pages/employee/dashboard/Dashboard";
 
 // Sementara untuk dashboard role lain masih bisa pakai dummy dulu atau di-import nanti
 const UnauthorizedPage = () => (
