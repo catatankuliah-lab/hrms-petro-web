@@ -100,11 +100,27 @@ export default function SuperAdminDashboard() {
         });
         setMyShiftsMap(shiftMap);
 
+        // [PERBAIKAN UTAMA SHIFT MALAM / LINTAS HARI]
+        // Cari apakah ada absensi milik user ini yang BELUM Clock Out (meskipun tanggalnya kemarin/hari sebelumnya)
+        const uncompletedAttendance = userAttendances.find(a => {
+          return !a.clock_out;
+        });
+
+        // Cari juga absensi khusus hari ini
         const userTodayAtt = todayAttendances.find(a => {
           const empId = a.employee_id || a.Employee?.id;
           return String(empId) === String(currentUserId);
         });
-        if (userTodayAtt) {
+
+        if (uncompletedAttendance) {
+          // Jika ada yang belum clock out (misal sisa shift malam kemarin), paksa arahkan untuk Clock Out data tersebut
+          setTodayAttendanceId(uncompletedAttendance.id);
+          setTodayProjectId(uncompletedAttendance.project_id || uncompletedAttendance.Project?.id);
+          setAttendanceStatus("Sudah Clock In");
+          if (uncompletedAttendance.project_id || uncompletedAttendance.Project?.name) {
+            setTodayProjectName(uncompletedAttendance.Project?.name || "Penugasan Operasional");
+          }
+        } else if (userTodayAtt) {
           setTodayAttendanceId(userTodayAtt.id);
           setTodayProjectId(userTodayAtt.project_id || userTodayAtt.Project?.id);
           setAttendanceStatus(userTodayAtt.clock_out ? "Sudah Clock Out" : "Sudah Clock In");
@@ -118,12 +134,12 @@ export default function SuperAdminDashboard() {
           setTodayShiftInfo(`${shiftName} (${clockIn} - ${clockOut})`);
           
           const projName = myTodayShift.Project?.name || myTodayShift.project_name;
-          if (projName) {
+          if (projName && !uncompletedAttendance) {
             setTodayProjectName(projName);
           }
 
           const projId = myTodayShift.project_id || myTodayShift.Project?.id || myTodayShift.raw_project_id;
-          if (projId) {
+          if (projId && !uncompletedAttendance) {
             setTodayProjectId(projId);
           }
         } else {
@@ -143,7 +159,6 @@ export default function SuperAdminDashboard() {
         });
       } catch (error) {
         console.error(error);
-        // Silent error
       } finally {
         setLoading(false);
       }
@@ -315,8 +330,8 @@ export default function SuperAdminDashboard() {
       ctx.drawImage(logoImage, 30, 30, targetWidth, targetHeight);
     }
 
-    const employeeName = user?.nama || "Super Admin";
-    const employeeRole = user?.role || "Super Admin";
+    const employeeName = user?.nama || "Karyawan";
+    const employeeRole = user?.role || "Karyawan";
     const timeNow = new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "medium" });
 
     const leftMargin = 30;
@@ -422,6 +437,7 @@ export default function SuperAdminDashboard() {
           selfie_out_url: previewUrl
         };
 
+        // Jika backend clock-out memerlukan ID absensi atau menggunakan update record aktif
         await api.put("/attendances/clock-out", payload);
         await Swal.fire({ icon: "success", title: "Berhasil!", text: "Clock Out berhasil dicatat.", showConfirmButton: false, timer: 1500 });
       }
@@ -467,7 +483,7 @@ export default function SuperAdminDashboard() {
           Dashboard Karyawan HRMS
         </h2>
         <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-          Selamat datang kembali, <strong className="text-primary">{user?.nama || "Admin"}</strong>! Berikut adalah ringkasan operasional perusahaan hari ini.
+          Selamat datang kembali, <strong className="text-primary">{user?.nama || "Karyawan"}</strong>! Berikut adalah ringkasan operasional perusahaan hari ini.
         </p>
       </div>
 
@@ -608,7 +624,7 @@ export default function SuperAdminDashboard() {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
-              <span className="text-slate-600 dark:text-slate-400">Tidak Masuk / Alpha</span>
+              <span className="text-slate-600 dark:text-rose-400">Tidak Masuk / Alpha</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700 inline-block"></span>
