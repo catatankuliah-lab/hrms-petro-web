@@ -100,20 +100,14 @@ export default function SuperAdminDashboard() {
         });
         setMyShiftsMap(shiftMap);
 
-        // [PERBAIKAN UTAMA SHIFT MALAM / LINTAS HARI]
-        // Cari apakah ada absensi milik user ini yang BELUM Clock Out (meskipun tanggalnya kemarin/hari sebelumnya)
-        const uncompletedAttendance = userAttendances.find(a => {
-          return !a.clock_out;
-        });
-
-        // Cari juga absensi khusus hari ini
+        // Deteksi sesi absen aktif (mengatasi shift malam / lintas hari)
+        const uncompletedAttendance = userAttendances.find(a => !a.clock_out);
         const userTodayAtt = todayAttendances.find(a => {
           const empId = a.employee_id || a.Employee?.id;
           return String(empId) === String(currentUserId);
         });
 
         if (uncompletedAttendance) {
-          // Jika ada yang belum clock out (misal sisa shift malam kemarin), paksa arahkan untuk Clock Out data tersebut
           setTodayAttendanceId(uncompletedAttendance.id);
           setTodayProjectId(uncompletedAttendance.project_id || uncompletedAttendance.Project?.id);
           setAttendanceStatus("Sudah Clock In");
@@ -219,14 +213,14 @@ export default function SuperAdminDashboard() {
             ${selfieInUrl ? `
               <div style="background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center;">
                 <p style="font-weight: bold; margin: 0 0 6px 0; font-size: 12px; color: #cbd5e1;">📷 Foto Clock In (Masuk)</p>
-                <img src="${selfieInUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 320px; object-fit: contain; border-radius: 8px; background: #000;" />
+                <img src="${selfieInUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 480px; object-fit: cover; border-radius: 12px; background: #000;" />
               </div>
             ` : ''}
             
             ${selfieOutUrl ? `
               <div style="background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center;">
                 <p style="font-weight: bold; margin: 0 0 6px 0; font-size: 12px; color: #cbd5e1;">📷 Foto Clock Out (Pulang)</p>
-                <img src="${selfieOutUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 320px; object-fit: contain; border-radius: 8px; background: #000;" />
+                <img src="${selfieOutUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 480px; object-fit: cover; border-radius: 12px; background: #000;" />
               </div>
             ` : ''}
           </div>
@@ -309,35 +303,59 @@ export default function SuperAdminDashboard() {
     setPreviewUrl(null);
   };
 
+  // Diperbarui agar canvas terkunci dalam orientasi potret vertikal (tidak lonjong/landscape)
   const capturePhotoWithWatermark = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    canvas.width = video.videoWidth || 720;
-    canvas.height = video.videoHeight || 1280;
+    canvas.width = 720;
+    canvas.height = 1280;
     const ctx = canvas.getContext("2d");
 
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const vWidth = video.videoWidth || 720;
+    const vHeight = video.videoHeight || 1280;
+    const canvasAspect = canvas.width / canvas.height;
+    const videoAspect = vWidth / vHeight;
+
+    let renderWidth, renderHeight, offsetX, offsetY;
+
+    if (videoAspect > canvasAspect) {
+      renderHeight = canvas.height;
+      renderWidth = vWidth * (canvas.height / vHeight);
+      offsetX = (canvas.width - renderWidth) / 2;
+      offsetY = 0;
+    } else {
+      renderWidth = canvas.width;
+      renderHeight = vHeight * (canvas.width / vWidth);
+      offsetX = 0;
+      offsetY = (canvas.height - renderHeight) / 2;
+    }
+
     ctx.save();
+    ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, offsetX, offsetY, renderWidth, renderHeight);
     ctx.restore();
 
     if (logoImage) {
-      const targetHeight = 55;
+      const targetHeight = 65;
       const imgAspect = logoImage.width / logoImage.height;
       const targetWidth = targetHeight * imgAspect;
-      ctx.drawImage(logoImage, 30, 30, targetWidth, targetHeight);
+      ctx.drawImage(logoImage, 35, 35, targetWidth, targetHeight);
     }
 
     const employeeName = user?.nama || "Karyawan";
     const employeeRole = user?.role || "Karyawan";
     const timeNow = new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "medium" });
 
-    const leftMargin = 30;
-    const maxWidth = canvas.width - 60;
+    const leftMargin = 35;
+    const maxWidth = canvas.width - 70;
 
-    ctx.font = "14px sans-serif";
+    ctx.font = "16px sans-serif";
     const addressWords = `🏠 ${currentAddress}`.split(" ");
     let addressLines = [];
     let currentLine = "";
@@ -352,52 +370,52 @@ export default function SuperAdminDashboard() {
     }
     addressLines.push(currentLine);
 
-    let dynamicBoxHeight = 45 + 32 + 28 + 26 + 26 + (addressLines.length * 20) + 28 + 24 + 35;
+    let dynamicBoxHeight = 50 + 36 + 32 + 30 + 30 + (addressLines.length * 24) + 32 + 28 + 45;
     let boxY = canvas.height - dynamicBoxHeight;
 
-    ctx.fillStyle = "rgba(15, 23, 42, 0.93)";
+    ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
     ctx.fillRect(0, boxY, canvas.width, dynamicBoxHeight);
 
     ctx.fillStyle = "#3b82f6";
-    ctx.fillRect(0, boxY, canvas.width, 6);
+    ctx.fillRect(0, boxY, canvas.width, 8);
 
-    let currentY = boxY + 60;
+    let currentY = boxY + 65;
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = "bold 20px sans-serif";
     ctx.fillText(`👤 ${employeeName}`, leftMargin, currentY);
-    currentY += 28;
+    currentY += 36;
 
     ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = "bold 20px sans-serif";
     ctx.fillText(`💼 ${employeeRole}`, leftMargin, currentY);
-    currentY += 28;
+    currentY += 36;
 
     ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = "bold 20px sans-serif";
     ctx.fillText(`📌 ${todayProjectName}`, leftMargin, currentY);
-    currentY += 26;
+    currentY += 32;
 
     ctx.fillStyle = "#34d399";
-    ctx.font = "14px monospace";
+    ctx.font = "16px monospace";
     ctx.fillText(`📍 ${currentCoords.lat.toFixed(6)}, ${currentCoords.lon.toFixed(6)}`, leftMargin, currentY);
-    currentY += 26;
+    currentY += 30;
 
     ctx.font = "18px sans-serif";
     ctx.fillStyle = "#cbd5e1";
     for (let lineText of addressLines) {
       ctx.fillText(lineText, leftMargin, currentY);
-      currentY += 20;
+      currentY += 24;
     }
-    currentY += 4;
+    currentY += 6;
 
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = "bold 20px sans-serif";
     ctx.fillStyle = "#fbbf24";
     ctx.fillText(`🕒 ${timeNow}`, leftMargin, currentY);
-    currentY += 28;
+    currentY += 36;
 
     ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = "bold 20px sans-serif";
     ctx.fillText(`HRMS PT Petro Pacific by Nana Supriatna (KalaituDev)`, leftMargin, currentY);
 
     const watermarkedImage = canvas.toDataURL("image/jpeg", 0.90);
@@ -437,7 +455,6 @@ export default function SuperAdminDashboard() {
           selfie_out_url: previewUrl
         };
 
-        // Jika backend clock-out memerlukan ID absensi atau menggunakan update record aktif
         await api.put("/attendances/clock-out", payload);
         await Swal.fire({ icon: "success", title: "Berhasil!", text: "Clock Out berhasil dicatat.", showConfirmButton: false, timer: 1500 });
       }
