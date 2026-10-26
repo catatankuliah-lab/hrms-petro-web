@@ -12,8 +12,7 @@ const SidebarLayout = ({ onClose }) => {
 
   // Hanya simpan role yang aktif: Super Admin dan MGR_PROJECT (Manager)
   const basePath =
-    { "Super Admin": "/super-admin", "Project Manager": "/manager", "A Project Manager": "/manager", "HR": "/hr", "Finance": "/finance", "Employee" : "employee"  }[user?.role] || "";
-
+    { "Super Admin": "/super-admin", "Project Manager": "/manager", "A Project Manager": "/manager", "HR": "/hr", "Finance": "/finance", "Employee" : "/employee"  }[user?.role] || "";
   // Filter menu berdasarkan role
   const filteredSidebarContent = SidebarContent.filter((section) =>
     section.roles?.includes(user?.role)
