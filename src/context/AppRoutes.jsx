@@ -804,7 +804,7 @@ const AppRoutes = () => {
         />
         {/* --- ROUTE SUB-DETAIL SLIP GAJI PER KARYAWAN --- */}
         <Route
-          path="/super-admin/payroll-payslips/detail/:id"
+          path="/hr/payroll-payslips/detail/:id"
           element={
             <PrivateRoute allowedRoles={["HR"]}>
               <HRPayrollPayslipDetailPage />
