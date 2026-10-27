@@ -56,6 +56,7 @@ export default function SuperAdminDashboard() {
         const todayStr = new Date().toISOString().split("T")[0];
         const currentUserId = user?.id || localStorage.getItem("user_id");
 
+        // Diperbarui: Menambahkan ?limit=1000 agar data absensi masa lalu tidak terpotong oleh limit default backend (10 data)
         const [empRes, branchRes, deptRes, projRes, caRes, otRes, attRes, shiftRes] = await Promise.all([
           api.get("/employees").catch(() => ({ data: { data: [] } })),
           api.get("/branches").catch(() => ({ data: { data: [] } })),
@@ -63,7 +64,7 @@ export default function SuperAdminDashboard() {
           api.get("/projects").catch(() => ({ data: { data: [] } })),
           api.get("/cash-advances?status=Pending").catch(() => ({ data: { data: [] } })),
           api.get("/overtimes?status=Pending").catch(() => ({ data: { data: [] } })),
-          api.get("/attendances").catch(() => ({ data: { data: [] } })),
+          api.get("/attendances?limit=1000").catch(() => ({ data: { data: [] } })),
           api.get("/employee-shifts").catch(() => ({ data: { data: [] } })),
         ]);
 
