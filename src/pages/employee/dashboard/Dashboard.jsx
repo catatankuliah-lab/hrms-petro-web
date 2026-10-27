@@ -100,7 +100,6 @@ export default function SuperAdminDashboard() {
         });
         setMyShiftsMap(shiftMap);
 
-        // Deteksi sesi absen aktif (mengatasi shift malam / lintas hari)
         const uncompletedAttendance = userAttendances.find(a => !a.clock_out);
         const userTodayAtt = todayAttendances.find(a => {
           const empId = a.employee_id || a.Employee?.id;
@@ -303,7 +302,6 @@ export default function SuperAdminDashboard() {
     setPreviewUrl(null);
   };
 
-  // Diperbarui agar canvas terkunci dalam orientasi potret vertikal (tidak lonjong/landscape)
   const capturePhotoWithWatermark = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -692,8 +690,9 @@ export default function SuperAdminDashboard() {
                   statusColor = "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400 font-semibold";
                   badgeText = "Tidak Masuk";
                 } else {
-                  statusColor = "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 font-semibold";
-                  badgeText = shiftRecord.Shift.name || "Terjadwal";
+                  // Tanggal masa depan (Upcoming/Terjadwal) dibuat netral/slate agar tidak mencolok
+                  statusColor = "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300";
+                  badgeText = "Terjadwal";
                 }
               }
 
