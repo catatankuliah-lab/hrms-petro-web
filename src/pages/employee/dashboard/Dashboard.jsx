@@ -73,7 +73,10 @@ export default function SuperAdminDashboard() {
         );
 
         const allAttendances = attRes.data.data || [];
-        const todayAttendances = allAttendances.filter(a => a.date === todayStr);
+        const todayAttendances = allAttendances.filter(a => {
+          const aDate = a.date ? a.date.split("T")[0].split(" ")[0] : "";
+          return aDate === todayStr;
+        });
         
         const presentCount = todayAttendances.length;
         const lateCount = todayAttendances.filter(a => a.status && a.status.toLowerCase().includes("late")).length;
@@ -82,9 +85,13 @@ export default function SuperAdminDashboard() {
           const empId = a.employee_id || a.Employee?.id;
           return String(empId) === String(currentUserId);
         });
+
         const attMap = {};
         userAttendances.forEach(item => {
-          attMap[item.date] = item;
+          const cleanDate = item.date ? item.date.split("T")[0].split(" ")[0] : null;
+          if (cleanDate) {
+            attMap[cleanDate] = item;
+          }
         });
         setMyAttendancesMap(attMap);
 
@@ -96,7 +103,10 @@ export default function SuperAdminDashboard() {
 
         const shiftMap = {};
         userShifts.forEach(item => {
-          shiftMap[item.date] = item;
+          const cleanDate = item.date ? item.date.split("T")[0].split(" ")[0] : null;
+          if (cleanDate) {
+            shiftMap[cleanDate] = item;
+          }
         });
         setMyShiftsMap(shiftMap);
 
@@ -643,7 +653,7 @@ export default function SuperAdminDashboard() {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700 inline-block"></span>
-              <span className="text-slate-600 dark:text-slate-400">Libur / Off / Belum Ada Jadwal</span>
+              <span className="text-slate-600 dark:text-slate-400">Libur / Off / Terjadwal</span>
             </div>
           </div>
 
@@ -690,7 +700,6 @@ export default function SuperAdminDashboard() {
                   statusColor = "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400 font-semibold";
                   badgeText = "Tidak Masuk";
                 } else {
-                  // Tanggal masa depan (Upcoming/Terjadwal) dibuat netral/slate agar tidak mencolok
                   statusColor = "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300";
                   badgeText = "Terjadwal";
                 }
