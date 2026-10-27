@@ -321,32 +321,23 @@ export default function SuperAdminDashboard() {
     canvas.height = 1280;
     const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const vWidth = video.videoWidth || 720;
-    const vHeight = video.videoHeight || 1280;
-    const canvasAspect = canvas.width / canvas.height;
-    const videoAspect = vWidth / vHeight;
+    const vWidth = video.videoWidth || video.clientWidth || 720;
+    const vHeight = video.videoHeight || video.clientHeight || 1280;
 
-    let renderWidth, renderHeight, offsetX, offsetY;
-
-    if (videoAspect > canvasAspect) {
-      renderHeight = canvas.height;
-      renderWidth = vWidth * (canvas.height / vHeight);
-      offsetX = (canvas.width - renderWidth) / 2;
-      offsetY = 0;
-    } else {
-      renderWidth = canvas.width;
-      renderHeight = vHeight * (canvas.width / vWidth);
-      offsetX = 0;
-      offsetY = (canvas.height - renderHeight) / 2;
-    }
+    // Menyesuaikan agar video memenuhi canvas secara proporsional (object-fit: cover versi canvas)
+    const scale = Math.max(canvas.width / vWidth, canvas.height / vHeight);
+    const sw = canvas.width / scale;
+    const sh = canvas.height / scale;
+    const sx = (vWidth - sw) / 2;
+    const sy = (vHeight - sh) / 2;
 
     ctx.save();
     ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, offsetX, offsetY, renderWidth, renderHeight);
+    ctx.scale(-1, 1); // Efek cermin kamera depan
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     ctx.restore();
 
     if (logoImage) {
