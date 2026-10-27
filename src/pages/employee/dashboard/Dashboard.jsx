@@ -223,14 +223,14 @@ export default function SuperAdminDashboard() {
             ${selfieInUrl ? `
               <div style="background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center;">
                 <p style="font-weight: bold; margin: 0 0 6px 0; font-size: 12px; color: #cbd5e1;">📷 Foto Clock In (Masuk)</p>
-                <img src="${selfieInUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 480px; object-fit: cover; border-radius: 12px; background: #000;" />
+                <img src="${selfieInUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 720px; object-fit: cover; border-radius: 12px; background: #000;" />
               </div>
             ` : ''}
             
             ${selfieOutUrl ? `
               <div style="background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center;">
                 <p style="font-weight: bold; margin: 0 0 6px 0; font-size: 12px; color: #cbd5e1;">📷 Foto Clock Out (Pulang)</p>
-                <img src="${selfieOutUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 480px; object-fit: cover; border-radius: 12px; background: #000;" />
+                <img src="${selfieOutUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gagal+Muat';" style="width: 100%; max-height: 720px; object-fit: cover; border-radius: 12px; background: #000;" />
               </div>
             ` : ''}
           </div>
@@ -238,8 +238,7 @@ export default function SuperAdminDashboard() {
       `,
       width: 420,
       showConfirmButton: false,
-      showCloseButton: true,
-      closeButtonHtml: '&times;'
+      showCloseButton: false,
     });
   };
 
