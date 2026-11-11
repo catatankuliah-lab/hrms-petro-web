@@ -158,6 +158,9 @@ export default function DetailPayrollPeriodPage() {
     }
   };
 
+  // Filter hanya menampilkan slip gaji yang net_salary-nya di atas 0
+  const filteredSlips = salarySlips.filter(item => Number(item.net_salary || 0) > 0);
+
   return (
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-2">
@@ -288,7 +291,7 @@ export default function DetailPayrollPeriodPage() {
                   {generating ? "Menghitung..." : "Generate Slip Gaji"}
                 </button>
 
-                {salarySlips.length > 0 && (
+                {filteredSlips.length > 0 && (
                   <button
                     type="button"
                     onClick={handleDownloadExcel}
@@ -301,11 +304,11 @@ export default function DetailPayrollPeriodPage() {
               </div>
             </div>
 
-            {salarySlips.length === 0 ? (
+            {filteredSlips.length === 0 ? (
               <div className="text-center py-12">
                 <Icon icon="solar:wallet-money-line-duotone" width="48" className="text-gray-400 mx-auto mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Belum ada data slip gaji yang digenerate untuk periode ini.
+                  Belum ada data slip gaji dengan total gaji di atas Rp 0 untuk periode ini.
                 </p>
               </div>
             ) : (
@@ -325,7 +328,7 @@ export default function DetailPayrollPeriodPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-slate-900">
-                    {salarySlips.map((item, index) => {
+                    {filteredSlips.map((item, index) => {
                       const empName = item.Employee 
                         ? `${item.Employee.first_name} ${item.Employee.last_name || ""}`.trim() 
                         : "-";
