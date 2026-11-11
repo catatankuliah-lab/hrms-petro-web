@@ -196,7 +196,6 @@ export default function SubDetailPayslipPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-slate-900">
                   {dailyBreakdown.map((row, idx) => {
-                    // Membersihkan teks di dalam kurung siku [...] dari status
                     const rawStatus = row.status || 'Hadir';
                     const cleanStatus = rawStatus.replace(/\[.*?\]/g, '').trim();
 
@@ -222,6 +221,7 @@ export default function SubDetailPayslipPage() {
                         <td className="p-4 px-4 text-right font-mono text-emerald-600 whitespace-nowrap">
                           {row.overtime_amount > 0 ? `+ Rp ${row.overtime_amount.toLocaleString('id-ID')}` : '-'}
                         </td>
+                        {/* Menambahkan kolom nominal potongan telat */}
                         <td className="p-4 px-4 text-right font-mono text-rose-600 whitespace-nowrap">
                           {row.late_amount > 0 ? `- Rp ${row.late_amount.toLocaleString('id-ID')}` : '-'}
                         </td>
