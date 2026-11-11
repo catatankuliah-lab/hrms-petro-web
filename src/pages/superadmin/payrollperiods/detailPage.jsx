@@ -6,6 +6,7 @@ import { Input } from "../../../components/ui/input";
 import { Icon } from "@iconify/react";
 import api from "../../../services/api";
 import Swal from "sweetalert2";
+import * as XLSX from "xlsx";
 
 export default function DetailPayrollPeriodPage() {
   const { id } = useParams();
@@ -143,23 +144,75 @@ export default function DetailPayrollPeriodPage() {
     }
   };
 
-  const handleDownloadExcel = async () => {
-    try {
-      const response = await api.get(`/payroll/periods/${id}/export-excel`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Slip-Gaji-Periode-${id}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      Swal.fire("Informasi", "Endpoint download Excel di backend sedang disiapkan. Pastikan rute export sudah terdaftar jika ingin mengunduh file.", "info");
-    }
-  };
-
   // Filter hanya menampilkan slip gaji yang net_salary-nya di atas 0
   const filteredSlips = salarySlips.filter(item => Number(item.net_salary || 0) > 0);
+
+  // Fungsi Download Excel menggunakan SheetJS langsung dari data state frontend
+  const handleDownloadExcel = () => {
+    try {
+      if (filteredSlips.length === 0) {
+        Swal.fire("Informasi", "Tidak ada data slip gaji yang valid untuk diunduh.", "info");
+        return;
+      }
+
+      const excelData = filteredSlips.map((item, index) => {
+        const empName = item.Employee 
+          ? `${item.Employee.first_name} ${item.Employee.last_name || ""}`.trim() 
+          : "-";
+        const empNik = item.Employee?.employee_id_number || "-";
+        const jobTitle = item.Employee?.JobPosition?.title || "Staff";
+        const deptName = item.Employee?.Department?.name || "Operasional";
+
+        return {
+          "No": index + 1,
+          "NIK": empNik,
+          "Nama Karyawan": empName,
+          "Jabatan": jobTitle,
+          "Divisi": deptName,
+          "Gaji Pokok (Rp)": Number(item.basic_salary || 0),
+          "Total Tunjangan (Rp)": Number(item.total_allowance || 0),
+          "Total Lembur (Rp)": Number(item.total_overtime || 0),
+          "Total Potongan (Rp)": Number(item.total_deduction || 0),
+          "Gaji Bersih / Net (Rp)": Number(item.net_salary || 0),
+          "Status": item.status || "Unpaid"
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Atur lebar kolom agar rapi saat dibuka di Excel
+      worksheet['!cols'] = [
+        { wch: 6 },  // No
+        { wch: 18 }, // NIK
+        { wch: 28 }, // Nama Karyawan
+        { wch: 20 }, // Jabatan
+        { wch: 20 }, // Divisi
+        { wch: 18 }, // Gaji Pokok
+        { wch: 18 }, // Total Tunjangan
+        { wch: 18 }, // Total Lembur
+        { wch: 18 }, // Total Potongan
+        { wch: 20 }, // Gaji Bersih
+        { wch: 12 }, // Status
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Gaji");
+
+      const fileName = `Rekap-Gaji-${formData.name || 'Periode'}-${id}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: "File Excel berhasil diunduh.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error("Gagal export Excel:", error);
+      Swal.fire("Gagal", "Terjadi kesalahan saat memproses file Excel.", "error");
+    }
+  };
 
   return (
     <DashboardLayout>
