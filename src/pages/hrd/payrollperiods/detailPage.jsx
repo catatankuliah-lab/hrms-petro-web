@@ -6,6 +6,7 @@ import { Input } from "../../../components/ui/input";
 import { Icon } from "@iconify/react";
 import api from "../../../services/api";
 import Swal from "sweetalert2";
+import * as XLSX from "xlsx";
 
 export default function DetailPayrollPeriodPage() {
   const { id } = useParams();
@@ -13,6 +14,7 @@ export default function DetailPayrollPeriodPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -143,18 +145,117 @@ export default function DetailPayrollPeriodPage() {
     }
   };
 
+  // Filter hanya menampilkan slip gaji yang net_salary-nya di atas 0
+  const filteredSlips = salarySlips.filter(item => Number(item.net_salary || 0) > 0);
+
+  // FUNGSI DOWNLOAD EXCEL DENGAN RINCIAN DETAIL HARIAN (FE MURNI)
   const handleDownloadExcel = async () => {
+    if (filteredSlips.length === 0) {
+      Swal.fire("Informasi", "Tidak ada data slip gaji yang valid untuk diunduh.", "info");
+      return;
+    }
+
+    setDownloadingExcel(true);
+
     try {
-      const response = await api.get(`/payroll/periods/${id}/export-excel`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Slip-Gaji-Periode-${id}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      Swal.fire("Informasi", "Endpoint download Excel di backend sedang disiapkan. Pastikan rute export sudah terdaftar jika ingin mengunduh file.", "info");
+      // 1. Fetch rincian detail (subDetail) secara parallel untuk semua karyawan yang aktif
+      const detailedPromises = filteredSlips.map(slip => 
+        api.get(`/payroll/payslips/${slip.id}`)
+          .then(res => res.data.data || res.data)
+          .catch(() => slip) // fallback ke data slip biasa jika error
+      );
+
+      const detailedPayslips = await Promise.all(detailedPromises);
+
+      // 2. Susun Data Sheet 1: Rekap Ringkasan Gaji Total
+      const rekapRows = detailedPayslips.map((slip, index) => {
+        const emp = slip.Employee || {};
+        const empName = `${emp.first_name || ""} ${emp.last_name || ""}`.trim();
+
+        return {
+          "No": index + 1,
+          "NIK": emp.employee_id_number || "-",
+          "Nama Karyawan": empName,
+          "Jabatan": emp.JobPosition?.title || "Staff",
+          "Divisi": emp.Department?.name || "Operasional",
+          "Gaji Pokok (Rp)": Number(slip.basic_salary || 0),
+          "Total Tunjangan (Rp)": Number(slip.total_allowance || 0),
+          "Total Lembur (Rp)": Number(slip.total_overtime || 0),
+          "Total Potongan (Rp)": Number(slip.total_deduction || 0),
+          "Gaji Bersih / Net (Rp)": Number(slip.net_salary || 0),
+          "Status Slip": slip.status || "Unpaid"
+        };
+      });
+
+      // 3. Susun Data Sheet 2: Rincian Kehadiran & Lembur Harian Detail
+      const rincianHarianRows = [];
+      let globalNo = 1;
+
+      detailedPayslips.forEach((slip) => {
+        const emp = slip.Employee || {};
+        const empName = `${emp.first_name || ""} ${emp.last_name || ""}`.trim();
+        const empNik = emp.employee_id_number || "-";
+        const dailyBreakdown = slip.daily_breakdown || [];
+
+        dailyBreakdown.forEach((row) => {
+          const rawStatus = row.status || 'Hadir';
+          const cleanStatus = rawStatus.replace(/\[.*?\]/g, '').trim();
+
+          rincianHarianRows.push({
+            "No": globalNo++,
+            "NIK": empNik,
+            "Nama Karyawan": empName,
+            "Tanggal": row.date,
+            "Shift": row.shift_name,
+            "Jam Masuk": row.clock_in,
+            "Jam Keluar": row.clock_out,
+            "Status": cleanStatus,
+            "Keterangan Telat": row.late_hours > 0 ? `Telat ${row.late_hours} jam` : '-',
+            "Potongan Telat (Rp)": Number(row.late_amount || 0),
+            "Lembur (Jam)": Number(row.overtime_hours || 0),
+            "Sumber Lembur": row.overtime_source || '-',
+            "Nominal Lembur (Rp)": Number(row.overtime_amount || 0)
+          });
+        });
+      });
+
+      // 4. Generate File Excel dengan Multiple Sheet
+      const workbook = XLSX.utils.book_new();
+
+      // Sheet 1: Rekap Total
+      const wsRekap = XLSX.utils.json_to_sheet(rekapRows);
+      wsRekap['!cols'] = [
+        { wch: 6 }, { wch: 18 }, { wch: 28 }, { wch: 20 }, { wch: 20 },
+        { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 12 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, wsRekap, "Rekap Total Gaji");
+
+      // Sheet 2: Rincian Harian Detail
+      const wsRincian = XLSX.utils.json_to_sheet(rincianHarianRows);
+      wsRincian['!cols'] = [
+        { wch: 6 }, { wch: 18 }, { wch: 28 }, { wch: 14 }, { wch: 18 },
+        { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 18 }, { wch: 18 },
+        { wch: 14 }, { wch: 18 }, { wch: 18 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, wsRincian, "Rincian Harian Detail");
+
+      // Export File
+      const fileName = `Rekap-Detail-Gaji-${formData.name || 'Periode'}-${id}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: "File Excel rincian detail berhasil diunduh.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+    } catch (error) {
+      console.error("Gagal export Excel rincian:", error);
+      Swal.fire("Gagal", "Terjadi kesalahan saat memproses data Excel.", "error");
+    } finally {
+      setDownloadingExcel(false);
     }
   };
 
@@ -288,24 +389,25 @@ export default function DetailPayrollPeriodPage() {
                   {generating ? "Menghitung..." : "Generate Slip Gaji"}
                 </button>
 
-                {salarySlips.length > 0 && (
+                {filteredSlips.length > 0 && (
                   <button
                     type="button"
                     onClick={handleDownloadExcel}
+                    disabled={downloadingExcel}
                     className="h-10 px-6 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-500/30 font-bold text-xs rounded-xl shadow-sm hover:bg-emerald-100 transition-all w-full md:w-auto md:min-w-[200px] flex items-center justify-center gap-2"
                   >
-                    <Icon icon="solar:file-excel-bold-duotone" width="18" />
-                    Download Excel
+                    <Icon icon={downloadingExcel ? "line-md:loading-twotone-loop" : "solar:file-excel-bold-duotone"} width="18" />
+                    {downloadingExcel ? "Mengekspor Detail..." : "Download Excel"}
                   </button>
                 )}
               </div>
             </div>
 
-            {salarySlips.length === 0 ? (
+            {filteredSlips.length === 0 ? (
               <div className="text-center py-12">
                 <Icon icon="solar:wallet-money-line-duotone" width="48" className="text-gray-400 mx-auto mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Belum ada data slip gaji yang digenerate untuk periode ini.
+                  Belum ada data slip gaji dengan total gaji di atas Rp 0 untuk periode ini.
                 </p>
               </div>
             ) : (
@@ -325,7 +427,7 @@ export default function DetailPayrollPeriodPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-slate-900">
-                    {salarySlips.map((item, index) => {
+                    {filteredSlips.map((item, index) => {
                       const empName = item.Employee 
                         ? `${item.Employee.first_name} ${item.Employee.last_name || ""}`.trim() 
                         : "-";
