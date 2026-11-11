@@ -2,262 +2,60 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
 import { Icon } from "@iconify/react";
 import api from "../../../services/api";
 import Swal from "sweetalert2";
-import * as XLSX from "xlsx";
 
-export default function DetailPayrollPeriodPage() {
+export default function SubDetailPayslipPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [downloadingExcel, setDownloadingExcel] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    start_date: "",
-    end_date: "",
-    status: "Draft"
-  });
-
-  const [salarySlips, setSalarySlips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [payslip, setPayslip] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setFetching(true);
+    const fetchDetail = async () => {
+      setLoading(true);
       try {
-        const [detailRes, slipsRes] = await Promise.all([
-          api.get(`/payroll/periods/${id}`),
-          api.get(`/payroll/periods/${id}/payslips`).catch(() => api.get(`/salary-slips`, { params: { payroll_period_id: id } }))
-        ]);
-
-        const data = detailRes.data.data || detailRes.data;
-        setFormData({
-          name: data.name || "",
-          start_date: data.start_date || "",
-          end_date: data.end_date || "",
-          status: data.status || "Draft"
-        });
-
-        const slipsData = slipsRes.data.data || slipsRes.data;
-        setSalarySlips(Array.isArray(slipsData) ? slipsData : (slipsData.data || []));
+        const res = await api.get(`/payroll/payslips/${id}`);
+        const data = res.data.data || res.data;
+        setPayslip(data);
       } catch (error) {
-        console.error("Gagal memuat detail periode:", error);
-        Swal.fire("Gagal", "Gagal memuat data periode dari server.", "error");
+        console.error("Gagal memuat detail slip gaji:", error);
+        Swal.fire("Gagal", "Gagal memuat rincian slip gaji dari server.", "error");
       } finally {
-        setFetching(false);
+        setLoading(false);
       }
     };
-    fetchData();
+    fetchDetail();
   }, [id]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-24">
+          <Icon icon="line-md:loading-twotone-loop" width="40" className="text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.start_date || !formData.end_date) {
-      Swal.fire({ icon: "warning", title: "Perhatian", text: "Nama dan rentang tanggal wajib diisi!" });
-      return;
-    }
+  if (!payslip) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-24 text-gray-500">Data slip gaji tidak ditemukan.</div>
+      </DashboardLayout>
+    );
+  }
 
-    setLoading(true);
-    try {
-      await api.put(`/payroll/periods/${id}`, formData);
-      Swal.fire({
-        icon: "success",
-        title: "Berhasil!",
-        text: "Data periode berhasil diperbarui.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal!",
-        text: error.response?.data?.message || "Terjadi kesalahan saat memperbarui data.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const emp = payslip.Employee || {};
+  const empName = `${emp.first_name || ""} ${emp.last_name || ""}`.trim();
+  const slipStatus = payslip.status || "Unpaid";
+  const dailyBreakdown = payslip.daily_breakdown || [];
 
-  const handleDelete = async () => {
-    const result = await Swal.fire({
-      title: "Apakah Anda yakin?",
-      text: "Periode penggajian yang dihapus tidak dapat dikembalikan!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: "Batal",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await api.delete(`/payroll/periods/${id}`);
-        Swal.fire({
-          icon: "success",
-          title: "Terhapus!",
-          text: "Periode payroll berhasil dihapus.",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        navigate("/super-admin/payroll-periods");
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Gagal!",
-          text: error.response?.data?.message || "Gagal menghapus periode.",
-        });
-      }
-    }
-  };
-
-  const handleGeneratePayslips = async () => {
-    const result = await Swal.fire({
-      title: "Generate Slip Gaji?",
-      text: "Sistem akan menghitung gaji pokok, tunjangan, lembur (resmi & bablas shift), dan potongan seluruh karyawan aktif untuk periode ini.",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Generate!",
-      cancelButtonText: "Batal",
-    });
-
-    if (result.isConfirmed) {
-      setGenerating(true);
-      try {
-        const res = await api.post(`/payroll/periods/${id}/generate`);
-        const slipsData = res.data.data || res.data;
-        setSalarySlips(Array.isArray(slipsData) ? slipsData : (slipsData.data || []));
-        
-        Swal.fire("Berhasil!", "Slip gaji berhasil digenerate otomatis oleh sistem.", "success");
-      } catch (error) {
-        Swal.fire("Gagal!", error.response?.data?.message || "Gagal generate slip gaji.", "error");
-      } finally {
-        setGenerating(false);
-      }
-    }
-  };
-
-  // Filter hanya menampilkan slip gaji yang net_salary-nya di atas 0
-  const filteredSlips = salarySlips.filter(item => Number(item.net_salary || 0) > 0);
-
-  // FUNGSI DOWNLOAD EXCEL DENGAN RINCIAN DETAIL HARIAN (FE MURNI)
-  const handleDownloadExcel = async () => {
-    if (filteredSlips.length === 0) {
-      Swal.fire("Informasi", "Tidak ada data slip gaji yang valid untuk diunduh.", "info");
-      return;
-    }
-
-    setDownloadingExcel(true);
-
-    try {
-      // 1. Fetch rincian detail (subDetail) secara parallel untuk semua karyawan yang aktif
-      const detailedPromises = filteredSlips.map(slip => 
-        api.get(`/payroll/payslips/${slip.id}`)
-          .then(res => res.data.data || res.data)
-          .catch(() => slip) // fallback ke data slip biasa jika error
-      );
-
-      const detailedPayslips = await Promise.all(detailedPromises);
-
-      // 2. Susun Data Sheet 1: Rekap Ringkasan Gaji Total
-      const rekapRows = detailedPayslips.map((slip, index) => {
-        const emp = slip.Employee || {};
-        const empName = `${emp.first_name || ""} ${emp.last_name || ""}`.trim();
-
-        return {
-          "No": index + 1,
-          "NIK": emp.employee_id_number || "-",
-          "Nama Karyawan": empName,
-          "Jabatan": emp.JobPosition?.title || "Staff",
-          "Divisi": emp.Department?.name || "Operasional",
-          "Gaji Pokok (Rp)": Number(slip.basic_salary || 0),
-          "Total Tunjangan (Rp)": Number(slip.total_allowance || 0),
-          "Total Lembur (Rp)": Number(slip.total_overtime || 0),
-          "Total Potongan (Rp)": Number(slip.total_deduction || 0),
-          "Gaji Bersih / Net (Rp)": Number(slip.net_salary || 0),
-          "Status Slip": slip.status || "Unpaid"
-        };
-      });
-
-      // 3. Susun Data Sheet 2: Rincian Kehadiran & Lembur Harian Detail
-      const rincianHarianRows = [];
-      let globalNo = 1;
-
-      detailedPayslips.forEach((slip) => {
-        const emp = slip.Employee || {};
-        const empName = `${emp.first_name || ""} ${emp.last_name || ""}`.trim();
-        const empNik = emp.employee_id_number || "-";
-        const dailyBreakdown = slip.daily_breakdown || [];
-
-        dailyBreakdown.forEach((row) => {
-          const rawStatus = row.status || 'Hadir';
-          const cleanStatus = rawStatus.replace(/\[.*?\]/g, '').trim();
-
-          rincianHarianRows.push({
-            "No": globalNo++,
-            "NIK": empNik,
-            "Nama Karyawan": empName,
-            "Tanggal": row.date,
-            "Shift": row.shift_name,
-            "Jam Masuk": row.clock_in,
-            "Jam Keluar": row.clock_out,
-            "Status": cleanStatus,
-            "Keterangan Telat": row.late_hours > 0 ? `Telat ${row.late_hours} jam` : '-',
-            "Potongan Telat (Rp)": Number(row.late_amount || 0),
-            "Lembur (Jam)": Number(row.overtime_hours || 0),
-            "Sumber Lembur": row.overtime_source || '-',
-            "Nominal Lembur (Rp)": Number(row.overtime_amount || 0)
-          });
-        });
-      });
-
-      // 4. Generate File Excel dengan Multiple Sheet
-      const workbook = XLSX.utils.book_new();
-
-      // Sheet 1: Rekap Total
-      const wsRekap = XLSX.utils.json_to_sheet(rekapRows);
-      wsRekap['!cols'] = [
-        { wch: 6 }, { wch: 18 }, { wch: 28 }, { wch: 20 }, { wch: 20 },
-        { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 12 }
-      ];
-      XLSX.utils.book_append_sheet(workbook, wsRekap, "Rekap Total Gaji");
-
-      // Sheet 2: Rincian Harian Detail
-      const wsRincian = XLSX.utils.json_to_sheet(rincianHarianRows);
-      wsRincian['!cols'] = [
-        { wch: 6 }, { wch: 18 }, { wch: 28 }, { wch: 14 }, { wch: 18 },
-        { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 18 }, { wch: 18 },
-        { wch: 14 }, { wch: 18 }, { wch: 18 }
-      ];
-      XLSX.utils.book_append_sheet(workbook, wsRincian, "Rincian Harian Detail");
-
-      // Export File
-      const fileName = `Rekap-Detail-Gaji-${formData.name || 'Periode'}-${id}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-
-      Swal.fire({
-        icon: "success",
-        title: "Berhasil!",
-        text: "File Excel rincian detail berhasil diunduh.",
-        timer: 1500,
-        showConfirmButton: false
-      });
-
-    } catch (error) {
-      console.error("Gagal export Excel rincian:", error);
-      Swal.fire("Gagal", "Terjadi kesalahan saat memproses data Excel.", "error");
-    } finally {
-      setDownloadingExcel(false);
-    }
-  };
+  let badgeColor = "bg-amber-500/10 text-amber-600 border-amber-500/20";
+  if (slipStatus.toLowerCase() === "paid") {
+    badgeColor = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+  }
 
   return (
     <DashboardLayout>
@@ -267,236 +65,175 @@ export default function DetailPayrollPeriodPage() {
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
           <Link to="/super-admin/payroll-periods" className="hover:text-primary transition-colors">Periode Penggajian</Link>
           <Icon icon="solar:alt-arrow-right-linear" width="14" />
-          <span className="text-gray-800 dark:text-gray-200 font-medium">Detail & Edit Periode</span>
+          <span className="text-gray-800 dark:text-gray-200 font-medium">Rincian Slip Gaji</span>
         </div>
 
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Detail & Edit Periode Penggajian</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Kelola informasi periode dan pantau daftar slip gaji karyawan.</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Rincian Slip Gaji Karyawan</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Informasi lengkap komponen gaji dan rincian kehadiran harian.</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate(-1)} 
+            className="h-10 px-6 rounded-xl border-gray-200 dark:border-gray-700"
+          >
+            Kembali
+          </Button>
         </div>
       </div>
 
-      {fetching ? (
-        <div className="flex justify-center py-16">
-          <Icon icon="line-md:loading-twotone-loop" width="40" className="text-primary" />
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Form Update Periode */}
-          <div className="bg-white dark:bg-card rounded-xl shadow-sm border border-gray-50 dark:border-none p-6 w-full">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <Icon icon="solar:calendar-bold-duotone" className="text-primary" width="24" />
-                Informasi Periode (#{id})
-              </h3>
-            </div>
-
-            <form onSubmit={handleUpdate} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="sm:col-span-2 lg:col-span-3">
-                  <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Nama Periode *</label>
-                  <Input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="h-10 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Tanggal Mulai *</label>
-                  <Input
-                    type="date"
-                    name="start_date"
-                    value={formData.start_date}
-                    onChange={handleChange}
-                    required
-                    className="h-10 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Tanggal Selesai *</label>
-                  <Input
-                    type="date"
-                    name="end_date"
-                    value={formData.end_date}
-                    onChange={handleChange}
-                    required
-                    className="h-10 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Status Periode *</label>
-                  <div className="relative w-full">
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      required
-                      className="h-10 rounded-xl px-3 bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-sm w-full appearance-none pr-8 text-gray-800 dark:text-gray-200 outline-none focus:border-primary"
-                    >
-                      <option value="Draft">Draft</option>
-                      <option value="Open">Open</option>
-                      <option value="Closed">Closed</option>
-                    </select>
-                    <Icon icon="solar:alt-arrow-down-linear" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="16" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="h-10 px-6 bg-rose-50 dark:bg-rose-950/50 text-rose-600 font-bold text-xs rounded-xl shadow-sm hover:bg-rose-100 transition-all w-full md:w-auto md:min-w-[200px] flex items-center justify-center gap-2"
-                >
-                  <Icon icon="solar:trash-bin-trash-bold" width="18" />
-                  Hapus Periode
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="h-10 px-6 bg-primary text-white font-bold text-xs rounded-xl shadow-sm hover:opacity-90 transition-all w-full md:w-auto md:min-w-[200px] flex items-center justify-center gap-2"
-                >
-                  <Icon icon="solar:check-circle-bold" width="18" />
-                  {loading ? "Memproses..." : "Perbarui Periode"}
-                </button>
-              </div>
-            </form>
+      <div className="space-y-6">
+        {/* Profil Karyawan & Status */}
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm border border-gray-50 dark:border-none p-6 w-full">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <Icon icon="solar:user-bold-duotone" className="text-primary" width="24" />
+              Profil Karyawan (#{emp.id || "-"})
+            </h3>
+            <span className={`px-3 py-1 text-xs font-semibold rounded-lg border ${badgeColor}`}>
+              {slipStatus}
+            </span>
           </div>
 
-          {/* Tabel Daftar Slip Gaji Karyawan */}
-          <div className="bg-white dark:bg-card rounded-xl shadow-sm border border-gray-50 dark:border-none p-6 w-full">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gray-800 gap-4">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <Icon icon="solar:wallet-money-bold-duotone" className="text-primary" width="24" />
-                Daftar Gaji & Slip Karyawan
-              </h3>
-
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={handleGeneratePayslips}
-                  disabled={generating}
-                  className="h-10 px-6 bg-primary text-white font-bold text-xs rounded-xl shadow-sm hover:opacity-90 transition-all w-full md:w-auto md:min-w-[200px] flex items-center justify-center gap-2"
-                >
-                  <Icon icon="solar:calculator-bold-duotone" width="18" />
-                  {generating ? "Menghitung..." : "Generate Slip Gaji"}
-                </button>
-
-                {filteredSlips.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleDownloadExcel}
-                    disabled={downloadingExcel}
-                    className="h-10 px-6 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-500/30 font-bold text-xs rounded-xl shadow-sm hover:bg-emerald-100 transition-all w-full md:w-auto md:min-w-[200px] flex items-center justify-center gap-2"
-                  >
-                    <Icon icon={downloadingExcel ? "line-md:loading-twotone-loop" : "solar:file-excel-bold-duotone"} width="18" />
-                    {downloadingExcel ? "Mengekspor Detail..." : "Download Excel"}
-                  </button>
-                )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Nama Lengkap</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 flex items-center text-sm font-bold">
+                {empName}
               </div>
             </div>
 
-            {filteredSlips.length === 0 ? (
-              <div className="text-center py-12">
-                <Icon icon="solar:wallet-money-line-duotone" width="48" className="text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Belum ada data slip gaji dengan total gaji di atas Rp 0 untuk periode ini.
-                </p>
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Nomor Induk Karyawan (NIK)</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 flex items-center text-sm font-mono">
+                {emp.employee_id_number || "-"}
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1150px] caption-bottom text-sm text-left border-collapse">
-                  <thead className="bg-gray-50 dark:bg-slate-950 border-b border-gray-100 dark:border-defaultBorder">
-                    <tr>
-                      <th className="h-12 px-6 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap w-[60px]">No</th>
-                      <th className="h-12 px-4 text-left font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Karyawan & NIK</th>
-                      <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Gaji Pokok</th>
-                      <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Tunjangan</th>
-                      <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Lembur</th>
-                      <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Potongan</th>
-                      <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Gaji Bersih (Net)</th>
-                      <th className="h-12 px-4 text-center font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap w-[100px]">Status</th>
-                      <th className="h-12 px-6 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap w-[100px]">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-slate-900">
-                    {filteredSlips.map((item, index) => {
-                      const empName = item.Employee 
-                        ? `${item.Employee.first_name} ${item.Employee.last_name || ""}`.trim() 
-                        : "-";
-                      const empNik = item.Employee?.employee_id_number || "-";
-                      const jobTitle = item.Employee?.JobPosition?.title || "Staff";
-                      const deptName = item.Employee?.Department?.name || "Operasional";
-                      const slipStatus = item.status || "Unpaid";
-                      
-                      let badgeColor = "bg-amber-500/10 text-amber-600 border-amber-500/20";
-                      if (slipStatus.toLowerCase() === "paid") {
-                        badgeColor = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
-                      }
+            </div>
 
-                      return (
-                        <tr key={item.id || index} className="border-b border-gray-100 dark:border-defaultBorder/50 hover:bg-gray-50 dark:hover:bg-background/50 transition-colors">
-                          <td className="p-4 px-6 font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                            {index + 1}
-                          </td>
-                          <td className="p-4 px-4 whitespace-nowrap">
-                            <div className="font-bold text-gray-800 dark:text-gray-200">{empName}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {jobTitle} • {deptName}
-                            </div>
-                            <div className="text-[10px] text-gray-400 font-mono">NIK: {empNik}</div>
-                          </td>
-                          <td className="p-4 px-4 text-right font-mono text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                            Rp {Number(item.basic_salary).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-4 px-4 text-right font-mono text-emerald-600 whitespace-nowrap">
-                            + Rp {Number(item.total_allowance).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-4 px-4 text-right font-mono text-primary whitespace-nowrap">
-                            + Rp {Number(item.total_overtime || 0).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-4 px-4 text-right font-mono text-rose-600 whitespace-nowrap">
-                            - Rp {Number(item.total_deduction).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-4 px-4 text-right font-mono font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                            Rp {Number(item.net_salary).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-4 px-4 text-center whitespace-nowrap">
-                            <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg border ${badgeColor}`}>
-                              {slipStatus}
-                            </span>
-                          </td>
-                          <td className="p-4 px-6 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Link to={`/super-admin/payroll-payslips/detail/${item.id}`}>
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  className="h-8 w-8 text-primary hover:bg-primary/10 rounded-md"
-                                  title="Rincian Slip Gaji Karyawan"
-                                >
-                                  <Icon icon="solar:eye-bold-duotone" width="16" />
-                                </Button>
-                              </Link>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Jabatan & Divisi</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 flex items-center text-sm">
+                {emp.JobPosition?.title || "Staff"} • {emp.Department?.name || "Divisi Umum"}
               </div>
-            )}
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Ringkasan Komponen Pendapatan & Potongan */}
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm border border-gray-50 dark:border-none p-6 w-full">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <Icon icon="solar:wallet-money-bold-duotone" className="text-primary" width="24" />
+              Ringkasan Komponen Gaji
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Gaji Pokok</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 flex items-center text-sm font-mono font-bold">
+                Rp {Number(payslip.basic_salary || 0).toLocaleString('id-ID')}
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Total Tunjangan</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-emerald-600 flex items-center text-sm font-mono font-bold">
+                + Rp {Number(payslip.total_allowance || 0).toLocaleString('id-ID')}
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Total Lembur</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-primary flex items-center text-sm font-mono font-bold">
+                + Rp {Number(payslip.total_overtime || 0).toLocaleString('id-ID')}
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Total Potongan</label>
+              <div className="h-10 px-3 rounded-xl bg-gray-50 dark:bg-[#2a3547] border border-gray-200 dark:border-gray-700 text-rose-600 flex items-center text-sm font-mono font-bold">
+                - Rp {Number(payslip.total_deduction || 0).toLocaleString('id-ID')}
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 lg:col-span-2">
+              <label className="block mb-2 font-medium text-sm text-gray-700 dark:text-gray-300">Gaji Bersih (Net Salary)</label>
+              <div className="h-10 px-3 rounded-xl bg-primary/10 border border-primary/30 text-primary flex items-center text-base font-mono font-extrabold">
+                Rp {Number(payslip.net_salary || 0).toLocaleString('id-ID')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabel Rincian Kehadiran & Lembur Harian */}
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm border border-gray-50 dark:border-none p-6 w-full">
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <Icon icon="solar:calendar-mark-bold-duotone" className="text-primary" width="24" />
+              Rincian Kehadiran & Lembur Per Hari
+            </h3>
+          </div>
+
+          {dailyBreakdown.length === 0 ? (
+            <div className="text-center py-10 text-gray-400 text-sm">
+              Tidak ada catatan absensi atau lembur harian pada periode ini.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[950px] caption-bottom text-sm text-left border-collapse">
+                <thead className="bg-gray-50 dark:bg-slate-950 border-b border-gray-100 dark:border-defaultBorder">
+                  <tr>
+                    <th className="h-12 px-4 font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Tanggal</th>
+                    <th className="h-12 px-4 font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Shift</th>
+                    <th className="h-12 px-4 font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Jam Masuk / Keluar</th>
+                    <th className="h-12 px-4 font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Status</th>
+                    <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Lembur (Jam)</th>
+                    <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Nominal Lembur</th>
+                    <th className="h-12 px-4 text-right font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">Potongan Telat</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-900">
+                  {dailyBreakdown.map((row, idx) => {
+                    const rawStatus = row.status || 'Hadir';
+                    const cleanStatus = rawStatus.replace(/\[.*?\]/g, '').trim();
+
+                    return (
+                      <tr key={idx} className="border-b border-gray-100 dark:border-defaultBorder/50 hover:bg-gray-50 dark:hover:bg-background/50 transition-colors">
+                        <td className="p-4 px-4 font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                          {row.date}
+                        </td>
+                        <td className="p-4 px-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                          {row.shift_name}
+                        </td>
+                        <td className="p-4 px-4 font-mono text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                          {row.clock_in} - {row.clock_out}
+                        </td>
+                        <td className="p-4 px-4 whitespace-nowrap">
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300">
+                            {cleanStatus} {row.late_hours > 0 ? `(Telat ${row.late_hours} jam)` : ''}
+                          </span>
+                        </td>
+                        <td className="p-4 px-4 text-right font-mono text-primary whitespace-nowrap">
+                          {row.overtime_hours > 0 ? `${row.overtime_hours} jam (${row.overtime_source})` : '-'}
+                        </td>
+                        <td className="p-4 px-4 text-right font-mono text-emerald-600 whitespace-nowrap">
+                          {row.overtime_amount > 0 ? `+ Rp ${row.overtime_amount.toLocaleString('id-ID')}` : '-'}
+                        </td>
+                        {/* Menambahkan kolom nominal potongan telat */}
+                        <td className="p-4 px-4 text-right font-mono text-rose-600 whitespace-nowrap">
+                          {row.late_amount > 0 ? `- Rp ${row.late_amount.toLocaleString('id-ID')}` : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
