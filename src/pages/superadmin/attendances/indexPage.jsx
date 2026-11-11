@@ -94,11 +94,9 @@ export default function IndexPage() {
     if (!timeStr) return "-";
     
     try {
-      // Jika format dari backend berupa ISO string ber-Z (misal: "2026-10-20T00:57:01.000Z")
       if (typeof timeStr === 'string' && (timeStr.includes("T") || timeStr.includes("Z"))) {
         const d = new Date(timeStr);
         if (!isNaN(d.getTime())) {
-          // Paksa render ke zona waktu Asia/Jakarta (WIB)
           return d.toLocaleTimeString("id-ID", {
             timeZone: "Asia/Jakarta",
             hour: "2-digit",
@@ -108,7 +106,6 @@ export default function IndexPage() {
         }
       }
 
-      // Jika format SQL biasa ("2026-10-20 07:57:01")
       if (typeof timeStr === 'string' && timeStr.includes(" ")) {
         const parts = timeStr.split(" ")[1];
         return parts ? parts.slice(0, 5) : "-";
@@ -121,7 +118,11 @@ export default function IndexPage() {
     }
   };
 
+  // Tambahkan console.log di sini untuk memeriksa isi data absensi saat tombol Detail diklik
   const handleOpenDetail = (item) => {
+    console.log("=== DATA ABSENSI LENGKAP ===", item);
+    console.log("=== URL SELFIE IN ===", item.selfie_in_url);
+    console.log("=== URL SELFIE OUT ===", item.selfie_out_url);
     setSelectedAttendance(item);
     setShowDetailModal(true);
   };
@@ -375,16 +376,31 @@ export default function IndexPage() {
               </div>
 
               <div className="space-y-3">
-                {selectedAttendance.selfie_in_url && (
+                {selectedAttendance.selfie_in_url ? (
                   <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
                     <p className="font-bold text-slate-300 mb-2 text-[11px]">📸 Foto Clock In (Masuk)</p>
-                    <img src={selectedAttendance.selfie_in_url.includes('http') ? selectedAttendance.selfie_in_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_in_url}`} onError={(e) => { e.target.onerror = null; e.target.src='https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie In" />
+                    <img 
+                      src={selectedAttendance.selfie_in_url.includes('http') ? selectedAttendance.selfie_in_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_in_url}`} 
+                      onError={(e) => { e.target.onerror = null; e.target.src='https://via.placeholder.com/150?text=Gagal+Muat'; }} 
+                      className="w-full max-h-72 object-contain rounded-xl bg-black" 
+                      alt="Selfie In" 
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center py-4">
+                    <p className="text-slate-400 text-[11px]">⚠️ Properti selfie_in_url kosong atau null</p>
                   </div>
                 )}
+
                 {selectedAttendance.selfie_out_url && (
                   <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-center">
                     <p className="font-bold text-slate-300 mb-2 text-[11px]">📷 Foto Clock Out (Pulang)</p>
-                    <img src={selectedAttendance.selfie_out_url.includes('http') ? selectedAttendance.selfie_out_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_out_url}`} onError={(e) => { e.target.onerror = null; e.target.src='https://via.placeholder.com/150?text=Gagal+Muat'; }} className="w-full max-h-72 object-contain rounded-xl bg-black" alt="Selfie Out" />
+                    <img 
+                      src={selectedAttendance.selfie_out_url.includes('http') ? selectedAttendance.selfie_out_url : `https://hrmsapi.petrolum.cloud/${selectedAttendance.selfie_out_url}`} 
+                      onError={(e) => { e.target.onerror = null; e.target.src='https://via.placeholder.com/150?text=Gagal+Muat'; }} 
+                      className="w-full max-h-72 object-contain rounded-xl bg-black" 
+                      alt="Selfie Out" 
+                    />
                   </div>
                 )}
               </div>
